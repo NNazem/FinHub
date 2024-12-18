@@ -1,29 +1,33 @@
 package main
 
 import (
+	"FinHub/goCardlessApi"
+	"github.com/joho/godotenv"
 	"log"
 )
 
 func main() {
-	token, err := getNewToken()
+	err := godotenv.Load()
 
 	if err != nil {
 		log.Println(err.Error())
 		return
 	}
 
+	GoCardlessApiService, err := goCardlessApi.NewGocardlessApiClient()
+
 	//banks, err := fetchAllBanksByCountry(token, "IT")
 
-	bank, err := fetchBankById(token, "INTESA_SANPAOLO_BCITITMMXXX")
+	bank, err := goCardlessApi.FetchBankById(GoCardlessApiService.Token, "INTESA_SANPAOLO_BCITITMMXXX")
 
-	agreement, err := CreateUserAgreement(bank.Id, token)
+	agreement, err := goCardlessApi.CreateUserAgreement(bank.Id, GoCardlessApiService.Token)
 
-	link, err := CreateLink(bank.Id, agreement.Id, token)
+	link, err := goCardlessApi.CreateLink(bank.Id, agreement.Id, GoCardlessApiService.Token)
 
-	accounts, err := FetchUserAccountsByBank(link.ID, token)
+	accounts, err := goCardlessApi.FetchUserAccountsByBank(link.ID, GoCardlessApiService.Token)
 
-	balance, err := FetchAccontBalance(agreement.Id, token)
-	log.Println(token.AccessToken)
+	balance, err := goCardlessApi.FetchAccontBalance(agreement.Id, GoCardlessApiService.Token)
+	log.Println(GoCardlessApiService.Token.AccessToken)
 
 	log.Println(bank.Name)
 

@@ -1,4 +1,4 @@
-package main
+package goCardlessApi
 
 import (
 	"bytes"
@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -58,17 +59,32 @@ type Balances struct {
 	Balances []Balance `json:"balances"`
 }
 
-// Balance rappresenta un singolo bilancio con i dettagli dell'importo e della data
 type Balance struct {
 	BalanceAmount BalanceAmount `json:"balanceAmount"`
 	BalanceType   string        `json:"balanceType"`
 	ReferenceDate string        `json:"referenceDate"`
 }
 
-// BalanceAmount rappresenta l'importo e la valuta del bilancio
 type BalanceAmount struct {
 	Amount   string `json:"amount"`
 	Currency string `json:"currency"`
+}
+
+type GoCardlessApiService struct {
+	Token *Token
+}
+
+func NewGocardlessApiClient() (*GoCardlessApiService, error) {
+	token, err := getNewToken()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &GoCardlessApiService{
+		Token: token,
+	}, nil
+
 }
 
 func getNewToken() (*Token, error) {
@@ -77,8 +93,8 @@ func getNewToken() (*Token, error) {
 		SecretID  string `json:"secret_id"`
 		SecretKey string `json:"secret_key"`
 	}{
-		SecretID:  "d721c529-1f6f-496b-ba8c-d541d5622220",
-		SecretKey: "b9a42f189b60ae5ba20f267e411db1b1328963f3f1a9cd280fe6ac36ff63aa6ee8c2d9aa50a338b99dc18166d46aaef66d68a280c7d2cd3fdcfb1c842757cde5",
+		SecretID:  os.Getenv("SECRET_ID"),
+		SecretKey: os.Getenv("SECRET_KEY"),
 	}
 
 	out, err := json.Marshal(body)
@@ -137,7 +153,7 @@ func fetchAllBanksByCountry(token *Token, country string) ([]Bank, error) {
 	return banks, nil
 }
 
-func fetchBankById(token *Token, id string) (*Bank, error) {
+func FetchBankById(token *Token, id string) (*Bank, error) {
 	query := fmt.Sprintf("https://bankaccountdata.gocardless.com/api/v2/institutions/%s/", id)
 	req, err := http.NewRequest("GET", query, nil)
 	if err != nil {
@@ -256,7 +272,7 @@ func CreateLink(institutionid, agreement string, token *Token) (*Requisition, er
 }
 
 func FetchUserAccountsByBank(requisitionId string, token *Token) (*ListAccountsResponse, error) {
-	query := fmt.Sprintf("https://bankaccountdata.gocardless.com/api/v2/requisitions/%s/", "ffb817f4-abb2-4c77-8da5-44f75962ccf2")
+	query := fmt.Sprintf("https://bankaccountdata.gocardless.com/api/v2/requisitions/%s/", requisitionId)
 
 	req, err := http.NewRequest("GET", query, nil)
 
