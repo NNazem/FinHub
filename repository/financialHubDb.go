@@ -3,6 +3,7 @@ package repository
 import (
 	"FinHub/model"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	_ "github.com/lib/pq"
 	"time"
@@ -58,14 +59,14 @@ func (d *FinancialHubRepository) GetToken(id int) (*model.Token, error) {
 	return &token, nil
 }
 
-func (d *FinancialHubRepository) GetAgreement(token *model.Token, institutionId string, userId int) (*model.Agreement, error) {
+func (d *FinancialHubRepository) GetAgreement(token *model.Token, institutionId string, userId int) (*model.AgreementResponse, error) {
 	sqlStatement := `
 	SELECT id, userId, accessToken, created, institution_id, max_historical_days, access_valid_for_days, access_scope, accepted
 	FROM agreements
 	WHERE userId = $1 AND accessToken = $2 AND institution_id = $3
 	`
 
-	var agreement model.Agreement
+	var agreement model.AgreementResponse
 	err := d.Db.QueryRow(sqlStatement, userId, token.AccessToken, institutionId).Scan(&agreement.Id, &agreement.UserId, &agreement.AccessToken, &agreement.Created, &agreement.InstitutionId, &agreement.MaxHistoricalDays, &agreement.AccessValidForDays, &agreement.AccessScope, &agreement.Accepted)
 
 	if err != nil {
@@ -100,7 +101,12 @@ func (d *FinancialHubRepository) InsertNewAgreement(agreement *model.Agreement) 
     INSERT INTO agreements (id, userId, accessToken, created, institution_id, max_historical_days, access_valid_for_days, access_scope, accepted)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
 
-	_, err := d.Db.Exec(sqlStatement, agreement.Id, agreement.UserId, agreement.AccessToken, agreement.Created, agreement.InstitutionId, agreement.MaxHistoricalDays, agreement.AccessValidForDays, agreement.AccessScope, agreement.Accepted)
+	accessScopeJSON, err := json.Marshal(agreement.AccessScope)
+	if err != nil {
+		return fmt.Errorf("failed to serialize access_scope: %w", err)
+	}
+
+	_, err = d.Db.Exec(sqlStatement, agreement.Id, agreement.UserId, agreement.AccessToken, agreement.Created, agreement.InstitutionId, agreement.MaxHistoricalDays, agreement.AccessValidForDays, accessScopeJSON, agreement.Accepted)
 
 	return err
 }

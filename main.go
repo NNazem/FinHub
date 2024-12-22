@@ -28,4 +28,5 @@ func main() {
 	agreement, err := FinancialHubService.GetAgreementByBankAndUserId(token, "INTESA_SANPAOLO_BCITITMMXXX", 1)
 
 	log.Println(agreement.Created)
+	log.Println(agreement.AccessScope)
 }

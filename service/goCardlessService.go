@@ -160,27 +160,14 @@ func (s *GoCardlessApiService) CreateUserAgreement(institutionId string, token *
 		return err
 	}
 
-	var agreement model.AgreementResponse
+	var agreement model.Agreement
 
 	err = json.NewDecoder(res.Body).Decode(&agreement)
 
 	agreement.UserId = userId
 	agreement.AccessToken = token.AccessToken
 
-	for i := range agreement.AccessScope {
-		var agreementTmp model.Agreement
-		agreementTmp.Id = agreement.Id
-		agreementTmp.UserId = agreement.UserId
-		agreementTmp.AccessToken = agreement.AccessToken
-		agreementTmp.Created = agreement.Created
-		agreementTmp.InstitutionId = agreement.InstitutionId
-		agreementTmp.MaxHistoricalDays = agreement.MaxHistoricalDays
-		agreementTmp.AccessValidForDays = agreement.AccessValidForDays
-		agreementTmp.AccessScope = agreement.AccessScope[i]
-		agreementTmp.Accepted = agreement.Accepted
-
-		err = s.FinHubRepository.InsertNewAgreement(&agreementTmp)
-	}
+	s.FinHubRepository.InsertNewAgreement(&agreement)
 
 	if err != nil {
 		return err

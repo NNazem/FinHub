@@ -3,6 +3,7 @@ package service
 import (
 	"FinHub/model"
 	"FinHub/repository"
+	"encoding/json"
 	"log"
 	"time"
 )
@@ -67,5 +68,20 @@ func (f *FinancialHubService) GetAgreementByBankAndUserId(token *model.Token, in
 		}
 	}
 
-	return agreement, nil
+	var accessScopeConverted []string
+	err = json.Unmarshal([]byte(agreement.AccessScope), &accessScopeConverted)
+
+	agreementConverted := model.Agreement{
+		Id:                 agreement.Id,
+		UserId:             agreement.UserId,
+		AccessToken:        agreement.AccessToken,
+		Created:            agreement.Created,
+		InstitutionId:      agreement.InstitutionId,
+		MaxHistoricalDays:  agreement.MaxHistoricalDays,
+		AccessValidForDays: agreement.AccessValidForDays,
+		AccessScope:        accessScopeConverted,
+		Accepted:           agreement.Accepted,
+	}
+
+	return &agreementConverted, nil
 }

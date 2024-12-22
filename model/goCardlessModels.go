@@ -34,7 +34,7 @@ type AgreementResponse struct {
 	InstitutionId      string    `json:"institution_id"`
 	MaxHistoricalDays  int       `json:"max_historical_days"`
 	AccessValidForDays int       `json:"access_valid_for_days"`
-	AccessScope        []string  `json:"access_scope"`
+	AccessScope        string    `json:"access_scope"`
 	Accepted           time.Time `json:"accepted"`
 }
 
@@ -46,7 +46,7 @@ type Agreement struct {
 	InstitutionId      string    `json:"institution_id"`
 	MaxHistoricalDays  int       `json:"max_historical_days"`
 	AccessValidForDays int       `json:"access_valid_for_days"`
-	AccessScope        string    `json:"access_scope"`
+	AccessScope        []string  `json:"access_scope"`
 	Accepted           time.Time `json:"accepted"`
 }
 
