@@ -76,6 +76,23 @@ func (d *FinancialHubRepository) GetAgreement(token *model.Token, institutionId 
 	return &agreement, nil
 }
 
+func (d *FinancialHubRepository) GetRequisition(agreementId string) (*model.Requisition, error) {
+	sqlStatement := `
+	SELECT id, redirect, institution_id, agreement, user_language, link
+	FROM requisitions
+	WHERE agreement = $1
+	`
+
+	var requisition model.Requisition
+	err := d.Db.QueryRow(sqlStatement, agreementId).Scan(&requisition.ID, &requisition.Redirect, &requisition.InstitutionID, &requisition.Agreement, &requisition.UserLanguage, &requisition.Link)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &requisition, nil
+}
+
 func (d *FinancialHubRepository) InsertNewToken(accessToken, refresh string, accessExpires, refreshExpires time.Time, id int) error {
 	sqlStatement := `
 	INSERT INTO tokens (userId, AccessToken, AccessExpires, Refresh, RefreshExpires)
@@ -111,12 +128,12 @@ func (d *FinancialHubRepository) InsertNewAgreement(agreement *model.Agreement) 
 	return err
 }
 
-func (d *FinancialHubRepository) InsertNewRequisition(id, redirect, institutionId, agreement, userLanguage, link string) error {
+func (d *FinancialHubRepository) InsertNewRequisition(requisition model.Requisition) error {
 	sqlStatement := `
     INSERT INTO requisitions (id, redirect, institution_id, agreement, user_language, link)
     VALUES ($1, $2, $3, $4, $5, $6)`
 
-	_, err := d.Db.Exec(sqlStatement, id, redirect, institutionId, agreement, userLanguage, link)
+	_, err := d.Db.Exec(sqlStatement, requisition.ID, requisition.Redirect, requisition.InstitutionID, requisition.Agreement, requisition.UserLanguage, requisition.Link)
 
 	return err
 }
@@ -135,5 +152,39 @@ func (d *FinancialHubRepository) InsertNewAccount(account *model.Account) error 
 	if err != nil {
 		return fmt.Errorf("failed to insert new account: %v", err)
 	}
+	return nil
+}
+
+func (d *FinancialHubRepository) GetAccountById(accountId string) int {
+	sqlStatement := `
+	SELECT count(*)
+	FROM accounts
+	WHERE id = $1
+	`
+
+	var count int
+
+	err := d.Db.QueryRow(sqlStatement, accountId).Scan(&count)
+
+	if err != nil {
+		return 0
+	}
+
+	return count
+}
+
+func (d *FinancialHubRepository) UpdateAccountBalance(accountId string, balance model.Balance) error {
+	sqlStatement := `
+	UPDATE accounts
+	SET balance_amount = $1, balance_currency = $2, balance_type = $3, reference_date = $4
+	WHERE id = $5
+	`
+
+	_, err := d.Db.Exec(sqlStatement, balance.BalanceAmount.Amount, balance.BalanceAmount.Currency, balance.BalanceType, balance.ReferenceDate, accountId)
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

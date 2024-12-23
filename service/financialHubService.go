@@ -85,3 +85,51 @@ func (f *FinancialHubService) GetAgreementByBankAndUserId(token *model.Token, in
 
 	return &agreementConverted, nil
 }
+
+func (f *FinancialHubService) GetRequisitionsByAgreement(token *model.Token, agreement *model.Agreement) (*model.Requisition, error) {
+	requisitions, err := f.financialHubRepository.GetRequisition(agreement.Id)
+
+	if err != nil {
+		log.Println("Requisition not found, requesting a new one")
+		err := f.goCardlessApiService.CreateRequisition(agreement.InstitutionId, agreement.Id, token)
+		if err != nil {
+			return nil, err
+		}
+		requisitions, err = f.financialHubRepository.GetRequisition(agreement.Id)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return requisitions, nil
+}
+
+func (f *FinancialHubService) AuthorizeRequisition(token *model.Token, requisition *model.Requisition) error {
+	err := f.goCardlessApiService.AuthorizeRequisition(requisition, token)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (f *FinancialHubService) FetchUserAccountsByBank(requisitionId string, token *model.Token) (*model.ListAccountsResponse, error) {
+	accounts, err := f.goCardlessApiService.FetchUserAccountsByBank(requisitionId, token)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return accounts, nil
+}
+
+func (f *FinancialHubService) FetchAccountBalance(accountId string, token *model.Token) (*model.Balances, error) {
+	balance, err := f.goCardlessApiService.FetchAccontBalance(accountId, token)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return balance, nil
+}

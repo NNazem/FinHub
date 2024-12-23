@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/exec"
 	"time"
 )
 
@@ -176,7 +177,7 @@ func (s *GoCardlessApiService) CreateUserAgreement(institutionId string, token *
 	return nil
 }
 
-func (s *GoCardlessApiService) CreateLink(institutionid, agreement string, token *model.Token) (*model.Requisition, error) {
+func (s *GoCardlessApiService) CreateRequisition(institutionid, agreement string, token *model.Token) error {
 	query := "https://bankaccountdata.gocardless.com/api/v2/requisitions/"
 	body := struct {
 		Redirect      string `json:"redirect"`
@@ -195,13 +196,13 @@ func (s *GoCardlessApiService) CreateLink(institutionid, agreement string, token
 	out, err := json.Marshal(body)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	req, err := http.NewRequest("POST", query, bytes.NewReader(out))
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token.AccessToken))
@@ -209,7 +210,7 @@ func (s *GoCardlessApiService) CreateLink(institutionid, agreement string, token
 	res, err := http.DefaultClient.Do(req)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	var requisition model.Requisition
@@ -217,10 +218,12 @@ func (s *GoCardlessApiService) CreateLink(institutionid, agreement string, token
 	err = json.NewDecoder(res.Body).Decode(&requisition)
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return &requisition, nil
+	s.FinHubRepository.InsertNewRequisition(requisition)
+
+	return nil
 }
 
 func (s *GoCardlessApiService) FetchUserAccountsByBank(requisitionId string, token *model.Token) (*model.ListAccountsResponse, error) {
@@ -244,6 +247,17 @@ func (s *GoCardlessApiService) FetchUserAccountsByBank(requisitionId string, tok
 	var accounts model.ListAccountsResponse
 
 	err = json.NewDecoder(res.Body).Decode(&accounts)
+
+	for i := range accounts.Accounts {
+		if s.FinHubRepository.GetAccountById(accounts.Accounts[i]) == 0 {
+			s.FinHubRepository.InsertNewAccount(&model.Account{
+				ID:            accounts.Accounts[i],
+				Reference:     accounts.Reference,
+				RequisitionID: accounts.RequisitionID,
+				Status:        accounts.Status,
+			})
+		}
+	}
 
 	if err != nil {
 		return nil, err
@@ -274,5 +288,45 @@ func (s *GoCardlessApiService) FetchAccontBalance(accountId string, token *model
 		return nil, err
 	}
 
+	err = s.FinHubRepository.UpdateAccountBalance(accountId, balance.Balances[1])
+
+	if err != nil {
+		return nil, err
+	}
+
 	return &balance, nil
+}
+
+func (s *GoCardlessApiService) AuthorizeRequisition(requisition *model.Requisition, token *model.Token) error {
+	query := requisition.Link
+
+	// Open the link in the default browser
+	err := exec.Command("open", query).Start()
+	if err != nil {
+		return fmt.Errorf("failed to open link: %v", err)
+	}
+
+	// Wait for the user to complete the authorization
+	fmt.Println("Please complete the authorization in the opened browser window and press Enter to continue...")
+	fmt.Scanln()
+
+	// Check the status of the requisition after authorization
+	req, err := http.NewRequest("GET", query, nil)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token.AccessToken))
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	if res.StatusCode != http.StatusOK {
+		return fmt.Errorf("authorization failed with status: %s", res.Status)
+	}
+
+	return nil
 }
