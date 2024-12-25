@@ -32,6 +32,11 @@ func (f *FinancialHubService) GetTokenByUserId(id int) (*model.Token, error) {
 
 	if token.AccessExpires.Compare(time.Now()) == -1 {
 		log.Println("Token expired, requesting a new one.")
+		err = f.goCardlessApiService.DeleteToken(id)
+		if err != nil {
+			log.Println("Failed to delete token:", err)
+			return nil, err
+		}
 		err = f.goCardlessApiService.GetNewToken()
 		if err != nil {
 			log.Println("Failed to get new token:", err)
@@ -43,8 +48,8 @@ func (f *FinancialHubService) GetTokenByUserId(id int) (*model.Token, error) {
 	return token, nil
 }
 
-func (f *FinancialHubService) GetBankById(token *model.Token, id string) (*model.Bank, error) {
-	bank, err := f.goCardlessApiService.GetBankById(token, id)
+func (f *FinancialHubService) GetBankById(id string) (*model.Bank, error) {
+	bank, err := f.goCardlessApiService.GetBankById(id)
 
 	if err != nil {
 		return nil, err
@@ -114,7 +119,7 @@ func (f *FinancialHubService) AuthorizeRequisition(token *model.Token, requisiti
 	return nil
 }
 
-func (f *FinancialHubService) FetchUserAccountsByBank(requisitionId string, token *model.Token) (*model.ListAccountsResponse, error) {
+func (f *FinancialHubService) GetUserAccountsByBank(requisitionId string, token *model.Token) (*model.ListAccountsResponse, error) {
 	accounts, err := f.goCardlessApiService.FetchUserAccountsByBank(requisitionId, token)
 
 	if err != nil {
@@ -124,7 +129,7 @@ func (f *FinancialHubService) FetchUserAccountsByBank(requisitionId string, toke
 	return accounts, nil
 }
 
-func (f *FinancialHubService) FetchAccountBalance(accountId string, token *model.Token) (*model.Balances, error) {
+func (f *FinancialHubService) GetAccountBalance(accountId string, token *model.Token) (*model.Balances, error) {
 	balance, err := f.goCardlessApiService.FetchAccontBalance(accountId, token)
 
 	if err != nil {
@@ -132,4 +137,14 @@ func (f *FinancialHubService) FetchAccountBalance(accountId string, token *model
 	}
 
 	return balance, nil
+}
+
+func (f *FinancialHubService) GetUserTotalBalance(userId int) (float32, error) {
+	totalBalance, err := f.financialHubRepository.GetBalanceByUserId(userId)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return totalBalance, nil
 }

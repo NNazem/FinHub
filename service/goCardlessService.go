@@ -77,9 +77,15 @@ func (s *GoCardlessApiService) GetNewToken() error {
 
 	return nil
 }
-func (s *GoCardlessApiService) GetAllBanksByCountry(token *model.Token, country string) ([]model.Bank, error) {
+func (s *GoCardlessApiService) GetAllBanksByCountry(country string) ([]model.Bank, error) {
 	query := fmt.Sprintf("https://bankaccountdata.gocardless.com/api/v2/institutions/?country=%s", country)
 	req, err := http.NewRequest("GET", query, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := s.FinHubRepository.GetToken(1)
+
 	if err != nil {
 		return nil, err
 	}
@@ -101,9 +107,15 @@ func (s *GoCardlessApiService) GetAllBanksByCountry(token *model.Token, country 
 	return banks, nil
 }
 
-func (s *GoCardlessApiService) GetBankById(token *model.Token, id string) (*model.Bank, error) {
+func (s *GoCardlessApiService) GetBankById(id string) (*model.Bank, error) {
 	query := fmt.Sprintf("https://bankaccountdata.gocardless.com/api/v2/institutions/%s/", id)
 	req, err := http.NewRequest("GET", query, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := s.FinHubRepository.GetToken(1)
+
 	if err != nil {
 		return nil, err
 	}
@@ -255,6 +267,7 @@ func (s *GoCardlessApiService) FetchUserAccountsByBank(requisitionId string, tok
 				Reference:     accounts.Reference,
 				RequisitionID: accounts.RequisitionID,
 				Status:        accounts.Status,
+				BalanceAmount: "0",
 			})
 		}
 	}
@@ -326,6 +339,16 @@ func (s *GoCardlessApiService) AuthorizeRequisition(requisition *model.Requisiti
 
 	if res.StatusCode != http.StatusOK {
 		return fmt.Errorf("authorization failed with status: %s", res.Status)
+	}
+
+	return nil
+}
+
+func (s *GoCardlessApiService) DeleteToken(id int) error {
+	err := s.FinHubRepository.DeleteToken(id)
+
+	if err != nil {
+		return err
 	}
 
 	return nil

@@ -188,3 +188,39 @@ func (d *FinancialHubRepository) UpdateAccountBalance(accountId string, balance 
 
 	return nil
 }
+
+func (d *FinancialHubRepository) GetBalanceByUserId(userId int) (float32, error) {
+	sqlStatement := `
+	SELECT SUM(CAST(balance_amount AS FLOAT))
+	FROM users 
+	join agreements on users.id = agreements.userId
+	join requisitions on agreements.id = requisitions.agreement
+	join accounts on requisitions.id = accounts.requisition_id
+	WHERE users.id = $1
+	`
+
+	var balance float32
+
+	err := d.Db.QueryRow(sqlStatement, userId).Scan(&balance)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return balance, nil
+}
+
+func (d *FinancialHubRepository) DeleteToken(id int) error {
+	sqlStatament := `
+	DELETE FROM tokens
+	WHERE userId = $1
+	`
+
+	_, err := d.Db.Exec(sqlStatament, id)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
