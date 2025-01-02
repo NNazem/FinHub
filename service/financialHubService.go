@@ -148,3 +148,46 @@ func (f *FinancialHubService) GetUserTotalBalance(userId int) (float32, error) {
 
 	return totalBalance, nil
 }
+
+func (f *FinancialHubService) GetUserAccounts(userId string) ([]model.Account, error) {
+	accounts, err := f.financialHubRepository.GetAccountsByUserId(userId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return accounts, nil
+}
+
+func (f *FinancialHubService) GetAccountTransactions(userId int, accountId string) ([]model.TransactionResponse, error) {
+
+	//transactions, err := f.goCardlessApiService.FetchAccountTransactions(accountId, token)
+	transactions, err := f.financialHubRepository.GetAccountTransaction(accountId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return transactions, nil
+}
+
+func (f *FinancialHubService) GetUserTransactions(userId int) ([]model.TransactionResponse, error) {
+	transactions, err := f.financialHubRepository.GetUserTransaction(userId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return transactions, nil
+
+}
+
+func (f *FinancialHubService) GetUserTransactionsByMonths(userId int, months int) ([]model.TransactionResponse, error) {
+	transactions, err := f.financialHubRepository.GetUserTransactionsByMonths(userId, months)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return transactions, nil
+}

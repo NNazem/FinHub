@@ -78,6 +78,7 @@ type Account struct {
 	BalanceCurrency string
 	BalanceType     string
 	ReferenceDate   string
+	UserId          string
 }
 
 type Balances struct {
@@ -93,4 +94,46 @@ type Balance struct {
 type BalanceAmount struct {
 	Amount   string `json:"amount"`
 	Currency string `json:"currency"`
+}
+
+type TransactionList struct {
+	Booked  []Transaction `json:"booked"`
+	Pending []Transaction `json:"pending"`
+}
+
+type Transaction struct {
+	TransactionId                     *string           `json:"transactionId,omitempty"`
+	DebtorName                        *string           `json:"debtorName,omitempty"`
+	DebtorAccount                     *DebtorAccount    `json:"debtorAccount,omitempty"`
+	BookingDate                       *string           `json:"bookingDate,omitempty"`
+	ValueDate                         *string           `json:"valueDate,omitempty"`
+	TransactionAmount                 TransactionAmount `json:"transactionAmount"`
+	BankTransactionCode               *string           `json:"bankTransactionCode,omitempty"`
+	RemittanceInformationUnstructured *string           `json:"remittanceInformationUnstructured,omitempty"`
+}
+
+type TransactionAmount struct {
+	Amount   string `json:"amount"`
+	Currency string `json:"currency"`
+}
+
+type DebtorAccount struct {
+	Iban string `json:"iban"`
+}
+
+// Transaction represents a record in the transactions table
+type TransactionResponse struct {
+	TransactionID                     string    `json:"transactionId" db:"transactionid"`
+	Booked                            bool      `json:"booked" db:"booked"`
+	Pending                           bool      `json:"pending" db:"pending"`
+	AccountID                         string    `json:"accountId" db:"accountid"`
+	InstitutionID                     string    `json:"institutionId" db:"institutionid"`
+	BookingDate                       time.Time `json:"bookingDate" db:"bookingdate"`
+	ValueDate                         time.Time `json:"valueDate" db:"valuedate"`
+	Amount                            string    `json:"amount" db:"amount"`
+	Currency                          string    `json:"currency" db:"currency"`
+	RemittanceInformationUnstructured string    `json:"remittanceInformationUnstructured" db:"remittanceinformationunstructured"`
+	InternalTransactionID             string    `json:"internalTransactionId" db:"internaltransactionid"`
+	InsertTime                        time.Time `json:"insertTime" db:"insert_time"`
+	UpdateTime                        time.Time `json:"updateTime" db:"update_time"`
 }

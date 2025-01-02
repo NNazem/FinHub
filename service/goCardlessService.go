@@ -310,6 +310,31 @@ func (s *GoCardlessApiService) FetchAccontBalance(accountId string, token *model
 	return &balance, nil
 }
 
+func (s *GoCardlessApiService) FetchAccountTransactions(accountId string, token *model.Token) (*model.TransactionList, error) {
+	query := fmt.Sprintf("https://bankaccountdata.gocardless.com/api/v2/accounts/%s/transactions/", accountId)
+
+	req, err := http.NewRequest("GET", query, nil)
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token.AccessToken))
+
+	res, err := http.DefaultClient.Do(req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var transactions model.TransactionList
+
+	err = json.NewDecoder(res.Body).Decode(&transactions)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &transactions, nil
+}
+
 func (s *GoCardlessApiService) AuthorizeRequisition(requisition *model.Requisition, token *model.Token) error {
 	query := requisition.Link
 

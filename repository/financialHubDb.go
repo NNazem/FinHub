@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	_ "github.com/lib/pq"
+	"log"
 	"time"
 )
 
@@ -223,4 +224,113 @@ func (d *FinancialHubRepository) DeleteToken(id int) error {
 	}
 
 	return nil
+}
+
+func (d *FinancialHubRepository) GetAccountTransaction(accountId string) ([]model.TransactionResponse, error) {
+	sqlStatement := `
+	SELECT *
+	FROM transactions
+	WHERE account_id = $1
+	`
+
+	var transactions []model.TransactionResponse
+
+	rows, err := d.Db.Query(sqlStatement, accountId)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var transaction model.TransactionResponse
+		err = rows.Scan(&transaction.TransactionID, &transaction.Booked, &transaction.Pending, &transaction.AccountID, &transaction.InstitutionID, &transaction.BookingDate, &transaction.ValueDate, &transaction.Amount, &transaction.Currency, &transaction.RemittanceInformationUnstructured, &transaction.InternalTransactionID, &transaction.InsertTime, &transaction.UpdateTime)
+		if err != nil {
+			return nil, err
+		}
+		transactions = append(transactions, transaction)
+	}
+
+	log.Println("transactions")
+	return transactions, nil
+}
+
+func (d *FinancialHubRepository) GetAccountsByUserId(id string) ([]model.Account, error) {
+	sqlStatement := `
+	SELECT id, requisition_id, status, agreements, reference, balance_amount, balance_currency, balance_type, reference_date, userId
+	FROM accounts
+	WHERE userId = $1
+	`
+
+	var accounts []model.Account
+
+	rows, err := d.Db.Query(sqlStatement, id)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var account model.Account
+		err = rows.Scan(&account.ID, &account.RequisitionID, &account.Status, &account.Agreements, &account.Reference, &account.BalanceAmount, &account.BalanceCurrency, &account.BalanceType, &account.ReferenceDate, &account.UserId)
+		if err != nil {
+			return nil, err
+		}
+		accounts = append(accounts, account)
+	}
+
+	return accounts, nil
+}
+
+func (d *FinancialHubRepository) GetUserTransaction(id int) ([]model.TransactionResponse, error) {
+	sqlStatament := `
+	SELECT b.transaction_id, b.booked, b.pending, b.account_id, b.institution_id, b.booking_date, b.value_date, b.amount, b.currency, b.remittance_information_unstructured, b.internal_transactionid
+	FROM transactions b
+	JOIN accounts a ON a.id = b.account_id
+	where a.userId = $1
+	`
+
+	var transactions []model.TransactionResponse
+
+	rows, err := d.Db.Query(sqlStatament, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var transaction model.TransactionResponse
+		err = rows.Scan(&transaction.TransactionID, &transaction.Booked, &transaction.Pending, &transaction.AccountID, &transaction.InstitutionID, &transaction.BookingDate, &transaction.ValueDate, &transaction.Amount, &transaction.Currency, &transaction.RemittanceInformationUnstructured, &transaction.InternalTransactionID)
+		if err != nil {
+			return nil, err
+		}
+		transactions = append(transactions, transaction)
+	}
+
+	return transactions, nil
+}
+
+func (d *FinancialHubRepository) GetUserTransactionsByMonths(id int, months int) ([]model.TransactionResponse, error) {
+	sqlStatament := `
+	SELECT b.transaction_id, b.booked, b.pending, b.account_id, b.institution_id, b.booking_date, b.value_date, b.amount, b.currency, b.remittance_information_unstructured, b.internal_transactionid
+	FROM transactions b
+	JOIN accounts a ON a.id = b.account_id
+	where a.userId = $1 AND b.booking_date > current_date - interval '1 month' * $2
+	`
+
+	var transactions []model.TransactionResponse
+
+	rows, err := d.Db.Query(sqlStatament, id, months)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var transaction model.TransactionResponse
+		err = rows.Scan(&transaction.TransactionID, &transaction.Booked, &transaction.Pending, &transaction.AccountID, &transaction.InstitutionID, &transaction.BookingDate, &transaction.ValueDate, &transaction.Amount, &transaction.Currency, &transaction.RemittanceInformationUnstructured, &transaction.InternalTransactionID)
+		if err != nil {
+			return nil, err
+		}
+		transactions = append(transactions, transaction)
+	}
+
+	return transactions, nil
 }
