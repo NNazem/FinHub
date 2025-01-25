@@ -1,10 +1,11 @@
 package model
 
+import "time"
+
 type CoinResponse struct {
 	Status Status              `json:"status"`
 	Data   map[string]CoinData `json:"data"`
 }
-
 type Status struct {
 	Timestamp    string `json:"timestamp"`
 	ErrorCode    int    `json:"error_code"`
@@ -21,7 +22,6 @@ type CoinData struct {
 	Slug                          string    `json:"slug"`
 	NumMarketPairs                int       `json:"num_market_pairs"`
 	DateAdded                     string    `json:"date_added"`
-	Tags                          []string  `json:"tags"`
 	MaxSupply                     int       `json:"max_supply"`
 	CirculatingSupply             float64   `json:"circulating_supply"`
 	TotalSupply                   float64   `json:"total_supply"`
@@ -38,7 +38,7 @@ type CoinData struct {
 }
 
 type Platform struct {
-	Id           int    `json:"id"`
+	Id           string `json:"id"`
 	Name         string `json:"name"`
 	Symbol       string `json:"symbol"`
 	Slug         string `json:"slug"`
@@ -64,4 +64,35 @@ type CoinQuoteCurrency struct {
 	FullyDilutedMarketCap float64  `json:"fully_diluted_market_cap"`
 	Tvl                   *float64 `json:"tvl"`
 	LastUpdated           string   `json:"last_updated"`
+}
+
+type CoinInfo struct {
+	Id       int    `json:"id"`
+	Name     string `json:"name"`
+	Symbol   string `json:"symbol"`
+	Category string `json:"category"`
+	Logo     string `json:"logo"`
+}
+
+type CoinInfoResponse struct {
+	Status Status              `json:"status"`
+	Data   map[string]CoinInfo `json:"data"`
+}
+
+type CoinHistoricalResponse struct {
+	Status Status               `json:"status"`
+	Data   []CoinHistoricalData `json:"data"`
+}
+
+type CoinHistoricalData struct {
+	Id                  int         `json:"id"`
+	Rank                int         `json:"rank"`
+	Name                string      `json:"name"`
+	Symbol              string      `json:"symbol"`
+	Slug                string      `json:"slug"`
+	IsActive            int         `json:"is_active"`
+	Status              int         `json:"status"`
+	FirstHistoricalData time.Time   `json:"first_historical_data"`
+	LastHistoricalData  time.Time   `json:"last_historical_data"`
+	Platform            interface{} `json:"platform"`
 }

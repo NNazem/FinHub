@@ -1,6 +1,7 @@
 package api
 
 import (
+	"FinHub/model"
 	"FinHub/service"
 	"encoding/json"
 	"github.com/gorilla/handlers"
@@ -16,8 +17,8 @@ type FinancialHubApi struct {
 	Router               *mux.Router
 }
 
-func NewFinancialHubApi(financialHubService *service.FinancialHubService, goCardlessApiService *service.GoCardlessApiService, router *mux.Router) *FinancialHubApi {
-	return &FinancialHubApi{FinancialHubService: financialHubService, GoCardlessApiService: goCardlessApiService, Router: router}
+func NewFinancialHubApi(financialHubService *service.FinancialHubService, goCardlessApiService *service.GoCardlessApiService, coinMarketcapApiService *service.CoinmarketcapService, router *mux.Router) *FinancialHubApi {
+	return &FinancialHubApi{FinancialHubService: financialHubService, GoCardlessApiService: goCardlessApiService, CoinmarketcapService: coinMarketcapApiService, Router: router}
 }
 
 func (f *FinancialHubApi) InitApi() {
@@ -39,6 +40,12 @@ func (f *FinancialHubApi) InitApi() {
 	f.Router.HandleFunc("/transactions/{userId}/months/{months}", f.GetUserTransactionsByMonths).Methods("GET")
 	f.Router.HandleFunc("/accounts/{userId}", f.GetUserAccounts).Methods("GET")
 	f.Router.HandleFunc("/coin/{coin}", f.GetCoinLatestData).Methods("GET")
+	f.Router.HandleFunc("/coinInfo/{coin}", f.GetCoinInfo).Methods("GET")
+	//f.Router.HandleFunc("/product", f.AddProduct).Methods("POST")
+	//f.Router.HandleFunc("/userProduct", f.AddUserFinanceProduct).Methods("POST")
+	f.Router.HandleFunc("/coinsHistoricalData", f.GetCoinsHistoricalData).Methods("GET")
+	f.Router.HandleFunc("/userCoins", f.AddUserCoins).Methods("POST")
+	f.Router.HandleFunc("/userCoins/{userId}", f.GetUserCoin).Methods("GET")
 }
 
 func (f *FinancialHubApi) GetTokenByUserId(w http.ResponseWriter, r *http.Request) {
@@ -202,7 +209,7 @@ func (f *FinancialHubApi) GetCoinLatestData(w http.ResponseWriter, r *http.Reque
 	params := mux.Vars(r)
 	coin := params["coin"]
 
-	coinResponse, err := f.CoinmarketcapService.GetCoinLatestData(coin)
+	coinResponse, err := f.CoinmarketcapService.GetCoinData(coin)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -211,6 +218,80 @@ func (f *FinancialHubApi) GetCoinLatestData(w http.ResponseWriter, r *http.Reque
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(coinResponse)
+
+	return
+}
+
+func (f *FinancialHubApi) GetCoinInfo(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	coin := params["coin"]
+
+	coinInfoResponse, err := f.CoinmarketcapService.GetCoinInfo(coin)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(coinInfoResponse)
+
+	return
+}
+
+func (f *FinancialHubApi) GetCoinsHistoricalData(w http.ResponseWriter, r *http.Request) {
+	err := f.CoinmarketcapService.GetCoinsHistoricalData()
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	return
+}
+
+func (f *FinancialHubApi) AddUserCoins(w http.ResponseWriter, r *http.Request) {
+	coin := &model.UserCoins{}
+
+	err := json.NewDecoder(r.Body).Decode(coin)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = f.CoinmarketcapService.AddUserCoin(coin)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	return
+}
+
+func (f *FinancialHubApi) GetUserCoin(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	userId := params["userId"]
+
+	atoi, err := strconv.Atoi(userId)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	coins, err := f.CoinmarketcapService.GetUserCoin(atoi)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(coins)
 
 	return
 }

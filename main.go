@@ -8,6 +8,7 @@ import (
 	"github.com/joho/godotenv"
 	"log"
 	"net/http"
+	"time"
 )
 
 func main() {
@@ -17,7 +18,6 @@ func main() {
 		log.Println(err.Error())
 		return
 	}
-
 	db, err := repository.InitDb()
 
 	FinancialHubRepository := &repository.FinancialHubRepository{Db: db}
@@ -26,43 +26,22 @@ func main() {
 
 	FinancialHubService := service.NewFinancialHubService(GoCardlessApiService, FinancialHubRepository)
 
-	/*
-			token, err := FinancialHubService.GetTokenByUserId(1)
+	CoinmarketcapService := service.NewCoinmarketcapService(FinancialHubRepository)
 
-			agreement, err := FinancialHubService.GetAgreementByBankAndUserId(token, "INTESA_SANPAOLO_BCITITMMXXX", 1)
-
-			requisition, err := FinancialHubService.GetRequisitionsByAgreement(token, agreement)
-
-			//err = FinancialHubService.AuthorizeRequisition(token, requisition)
-
-			accounts, err := FinancialHubService.GetUserAccountsByBank(requisition.ID, token)
-
-			log.Println(agreement.Created)
-			log.Println(agreement.AccessScope)
-			log.Println(requisition.ID)
-			log.Println(accounts)
-
-			for _, _ = range accounts.Accounts {
-				balance, err := FinancialHubService.GetAccountBalance(accounts.Accounts[1], token)
-
-				if err != nil {
-					log.Println(err)
-				}
-
-				log.Println(balance)
+	go func() {
+		for {
+			log.Println("updating crypto data")
+			err := CoinmarketcapService.GetCoinsHistoricalData()
+			if err != nil {
+				log.Println(err)
 			}
-
-		balance, err := FinancialHubService.GetUserTotalBalance(1)
-
-		if err != nil {
-			log.Println(err)
+			log.Println("crypto data updated")
+			time.Sleep(10 * time.Hour)
 		}
-
-		log.Println(balance)
-	*/
+	}()
 
 	r := mux.NewRouter()
-	api.NewFinancialHubApi(FinancialHubService, GoCardlessApiService, r).InitApi()
+	api.NewFinancialHubApi(FinancialHubService, GoCardlessApiService, CoinmarketcapService, r).InitApi()
 	http.Handle("/", r)
 	log.Fatal(http.ListenAndServe(":8081", nil))
 }

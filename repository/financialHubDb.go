@@ -334,3 +334,123 @@ func (d *FinancialHubRepository) GetUserTransactionsByMonths(id int, months int)
 
 	return transactions, nil
 }
+
+func (d *FinancialHubRepository) TruncateTable(tableName string) error {
+	sqlStatement := fmt.Sprintf("TRUNCATE TABLE %s", tableName)
+
+	_, err := d.Db.Exec(sqlStatement)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d *FinancialHubRepository) UpdateCoin(product *model.CoinHistoricalData) error {
+	sqlStatement := `
+	UPDATE coins
+	SET rank = $2, name = $3, symbol = $4, slug = $5, is_active = $6, status = $7, first_historical_data = $8, last_historical_data = $9
+	WHERE id = $1
+	`
+
+	_, err := d.Db.Exec(sqlStatement, product.Id, product.Rank, product.Name, product.Symbol, product.Slug, product.IsActive, product.Status, product.FirstHistoricalData, product.LastHistoricalData)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d *FinancialHubRepository) AddCoin(product *model.CoinHistoricalData) error {
+	sqlStatement := `
+	INSERT INTO coins (id, rank, name, symbol, slug, is_active, status, first_historical_data, last_historical_data)
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+	`
+
+	_, err := d.Db.Exec(sqlStatement, product.Id, product.Rank, product.Name, product.Symbol, product.Slug, product.IsActive, product.Status, product.FirstHistoricalData, product.LastHistoricalData)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d *FinancialHubRepository) GetCoin(id int) (model.CoinHistoricalData, error) {
+	sqlStatement := `
+	SELECT id, rank, name, symbol, slug, is_active, status, first_historical_data, last_historical_data
+	FROM coins
+	WHERE id = $1
+	`
+
+	var coin model.CoinHistoricalData
+
+	err := d.Db.QueryRow(sqlStatement, id).Scan(&coin.Id, &coin.Rank, &coin.Name, &coin.Symbol, &coin.Slug, &coin.IsActive, &coin.Status, &coin.FirstHistoricalData, &coin.LastHistoricalData)
+
+	if err != nil {
+		return coin, err
+	}
+
+	return coin, nil
+}
+
+func (d *FinancialHubRepository) IsCoinPresent(id int) bool {
+	sqlStatement := `
+	SELECT count(*)
+	FROM coins
+	WHERE id = $1
+	`
+
+	var count int
+
+	err := d.Db.QueryRow(sqlStatement, id).Scan(&count)
+
+	if err != nil {
+		return false
+	}
+
+	return count > 0
+}
+
+func (d *FinancialHubRepository) AddUserCoin(coin *model.UserCoins) error {
+	sqlStatement := `
+	INSERT INTO user_coins (user_id, coin_id, amount, price)
+	VALUES ($1, $2, $3, $4)
+	`
+
+	_, err := d.Db.Exec(sqlStatement, coin.UserId, coin.CoinId, coin.Amount, coin.Price)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d *FinancialHubRepository) GetUserCoin(userId int) ([]model.UserCoins, error) {
+	sqlStatement := `
+	SELECT user_id, coin_id, amount, price
+	FROM user_coins
+	WHERE user_id = $1
+	`
+
+	var coins []model.UserCoins
+
+	rows, err := d.Db.Query(sqlStatement, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var coin model.UserCoins
+		err = rows.Scan(&coin.UserId, &coin.CoinId, &coin.Amount, &coin.Price)
+		if err != nil {
+			return nil, err
+		}
+		coins = append(coins, coin)
+	}
+
+	return coins, nil
+}
