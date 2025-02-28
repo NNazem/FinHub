@@ -22,9 +22,7 @@ func main() {
 
 	FinancialHubRepository := &repository.FinancialHubRepository{Db: db}
 
-	GoCardlessApiService, err := service.NewGocardlessApiClient(FinancialHubRepository)
-
-	FinancialHubService := service.NewFinancialHubService(GoCardlessApiService, FinancialHubRepository)
+	FinancialHubService := service.NewFinancialHubService(FinancialHubRepository)
 
 	CoinmarketcapService := service.NewCoinmarketcapService(FinancialHubRepository)
 
@@ -41,7 +39,7 @@ func main() {
 	}()
 
 	r := mux.NewRouter()
-	api.NewFinancialHubApi(FinancialHubService, GoCardlessApiService, CoinmarketcapService, r).InitApi()
+	api.NewFinancialHubApi(FinancialHubService, CoinmarketcapService, r).InitApi()
 	http.Handle("/", r)
 	log.Fatal(http.ListenAndServe(":8081", nil))
 }
