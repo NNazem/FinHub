@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 type UserFinanceProduct struct {
 	Id        int     `json:"id"`
 	UserId    int     `json:"user_id"`
@@ -28,4 +30,32 @@ type UserCoinsResponse struct {
 	Price               float64 `json:"price"`
 	CurrentPrice        float64 `json:"current_price"`
 	CurrentProfit       float64 `json:"current_profit"`
+}
+
+type AllCoinsResponse struct {
+	Id   int    `json:"id"`
+	Rank int    `json:"rank"`
+	Name string `json:"name"`
+}
+
+type AmountPerCategory struct {
+	Amount     float64 `json:"amount"`
+	Percentage float64 `json:"percentage"`
+	Category   string  `json:"category"`
+}
+
+type UserAmountPerCategories struct {
+	UserId            int                 `json:"user_id"`
+	AmountPerCategory []AmountPerCategory `json:"amount_per_category"`
+}
+
+type AddCryptoRequest struct {
+	Coin struct {
+		Id   int    `json:"id"`
+		Rank int    `json:"rank"`
+		Name string `json:"name"`
+	} `json:"coin"`
+	Amount       string    `json:"amount"`
+	PurchaseDate time.Time `json:"purchaseDate"`
+	Price        string    `json:"price"`
 }

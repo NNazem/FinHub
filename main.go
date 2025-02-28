@@ -31,12 +31,12 @@ func main() {
 	go func() {
 		for {
 			log.Println("updating crypto data")
+			time.Sleep(10 * time.Hour)
 			err := CoinmarketcapService.GetCoinsHistoricalData()
 			if err != nil {
 				log.Println(err)
 			}
 			log.Println("crypto data updated")
-			time.Sleep(10 * time.Hour)
 		}
 	}()
 

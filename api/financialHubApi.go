@@ -12,19 +12,18 @@ import (
 
 type FinancialHubApi struct {
 	FinancialHubService  *service.FinancialHubService
-	GoCardlessApiService *service.GoCardlessApiService
 	CoinmarketcapService *service.CoinmarketcapService
 	Router               *mux.Router
 }
 
-func NewFinancialHubApi(financialHubService *service.FinancialHubService, goCardlessApiService *service.GoCardlessApiService, coinMarketcapApiService *service.CoinmarketcapService, router *mux.Router) *FinancialHubApi {
-	return &FinancialHubApi{FinancialHubService: financialHubService, GoCardlessApiService: goCardlessApiService, CoinmarketcapService: coinMarketcapApiService, Router: router}
+func NewFinancialHubApi(financialHubService *service.FinancialHubService, coinMarketcapApiService *service.CoinmarketcapService, router *mux.Router) *FinancialHubApi {
+	return &FinancialHubApi{FinancialHubService: financialHubService, CoinmarketcapService: coinMarketcapApiService, Router: router}
 }
 
 func (f *FinancialHubApi) InitApi() {
 
 	corsMiddleware := handlers.CORS(
-		handlers.AllowedOrigins([]string{"http://localhost:5173"}), // Your frontend origin
+		handlers.AllowedOrigins([]string{"*"}), // Your frontend origin
 		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
 		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
 	)
@@ -32,20 +31,31 @@ func (f *FinancialHubApi) InitApi() {
 	// Apply the middleware to your router
 	f.Router.Use(corsMiddleware)
 
+	// Account management part
 	f.Router.HandleFunc("/token/{id}", f.GetTokenByUserId).Methods("GET")
-	f.Router.HandleFunc("/banks/{country}", f.GetAllBanksByCountry).Methods("GET")
-	f.Router.HandleFunc("/bank/{id}", f.GetBankById).Methods("GET")
 	f.Router.HandleFunc("/transactions/{userId}/{accountId}", f.GetAccountTransaction).Methods("GET")
 	f.Router.HandleFunc("/transactions/{userId}", f.GetUserTransactions).Methods("GET")
 	f.Router.HandleFunc("/transactions/{userId}/months/{months}", f.GetUserTransactionsByMonths).Methods("GET")
 	f.Router.HandleFunc("/accounts/{userId}", f.GetUserAccounts).Methods("GET")
+
+	// PortFolio tracker part
 	f.Router.HandleFunc("/coin/{coin}", f.GetCoinLatestData).Methods("GET")
 	f.Router.HandleFunc("/coinInfo/{coin}", f.GetCoinInfo).Methods("GET")
-	//f.Router.HandleFunc("/product", f.AddProduct).Methods("POST")
-	//f.Router.HandleFunc("/userProduct", f.AddUserFinanceProduct).Methods("POST")
 	f.Router.HandleFunc("/coinsHistoricalData", f.GetCoinsHistoricalData).Methods("GET")
 	f.Router.HandleFunc("/userCoins", f.AddUserCoins).Methods("POST")
 	f.Router.HandleFunc("/userCoins/{userId}", f.GetUserCoin).Methods("GET")
+	f.Router.HandleFunc("/userCoinsGrouped/{userId}", f.GetUserCoinGrouped).Methods("GET")
+	f.Router.HandleFunc("/coins", f.GetCoins).Methods("GET")
+	f.Router.HandleFunc("/userAmountPerTypologies/{userId}", f.GetUserAmountPerTypologies).Methods("GET")
+	f.Router.HandleFunc("/addCrypto/{userId}", f.AddCrypto).Methods("POST")
+
+	// Utils
+	f.Router.Methods("OPTIONS").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.WriteHeader(http.StatusOK)
+	})
 }
 
 func (f *FinancialHubApi) GetTokenByUserId(w http.ResponseWriter, r *http.Request) {
@@ -67,40 +77,6 @@ func (f *FinancialHubApi) GetTokenByUserId(w http.ResponseWriter, r *http.Reques
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(token)
-
-	return
-}
-
-func (f *FinancialHubApi) GetAllBanksByCountry(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	country := params["country"]
-
-	banks, err := f.GoCardlessApiService.GetAllBanksByCountry(country)
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(banks)
-
-	return
-}
-
-func (f *FinancialHubApi) GetBankById(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	id := params["id"]
-
-	bank, err := f.GoCardlessApiService.GetBankById(id)
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(bank)
 
 	return
 }
@@ -209,7 +185,7 @@ func (f *FinancialHubApi) GetCoinLatestData(w http.ResponseWriter, r *http.Reque
 	params := mux.Vars(r)
 	coin := params["coin"]
 
-	coinResponse, err := f.CoinmarketcapService.GetCoinData(coin)
+	coinResponse, err := f.CoinmarketcapService.GetCoinsData([]string{coin})
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -293,5 +269,91 @@ func (f *FinancialHubApi) GetUserCoin(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(coins)
 
+	return
+}
+
+func (f *FinancialHubApi) GetUserCoinGrouped(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	userId := params["userId"]
+
+	atoi, err := strconv.Atoi(userId)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	coins, err := f.CoinmarketcapService.GetUserCoinsGrouped(atoi)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(coins)
+
+	return
+}
+
+func (f *FinancialHubApi) GetCoins(w http.ResponseWriter, r *http.Request) {
+	coins, err := f.CoinmarketcapService.GetCoins()
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(coins)
+
+	return
+}
+
+func (f *FinancialHubApi) GetUserAmountPerTypologies(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	userId := params["userId"]
+
+	userIdConverted, err := strconv.Atoi(userId)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	userAmountPerCategories, err := f.FinancialHubService.GetUserAmountPerTypologies(userIdConverted)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(userAmountPerCategories)
+}
+
+func (f *FinancialHubApi) AddCrypto(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+
+	userId := params["userId"]
+
+	coin := model.AddCryptoRequest{}
+
+	err := json.NewDecoder(r.Body).Decode(&coin)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = f.FinancialHubService.AddCoinToUser(userId, coin)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(coin)
 	return
 }

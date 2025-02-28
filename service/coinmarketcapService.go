@@ -6,10 +6,8 @@ import (
 	"encoding/json"
 	"io"
 	"log"
-	"math"
 	"net/http"
 	"os"
-	"strconv"
 )
 
 type CoinmarketcapService struct {
@@ -20,35 +18,6 @@ func NewCoinmarketcapService(repo *repository.FinancialHubRepository) *Coinmarke
 	return &CoinmarketcapService{
 		FinHubRepository: repo,
 	}
-}
-
-func (s *CoinmarketcapService) GetCoinData(coin string) (*model.CoinResponse, error) {
-	url := "https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest?id=" + coin
-
-	req, err := http.NewRequest("GET", url, nil)
-
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("X-CMC_PRO_API_KEY", os.Getenv("COINMARKETCAP_API_KEY"))
-
-	res, err := http.DefaultClient.Do(req)
-
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
-
-	coinResponse := &model.CoinResponse{}
-
-	err = json.Unmarshal(body, coinResponse)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return coinResponse, nil
 }
 
 func (s *CoinmarketcapService) GetCoinInfo(coin string) (*model.CoinInfoResponse, error) {
@@ -176,60 +145,4 @@ func (s *CoinmarketcapService) GetCoinsHistoricalData() error {
 	}
 
 	return nil
-}
-
-func (s *CoinmarketcapService) AddUserCoin(coins *model.UserCoins) error {
-	err := s.FinHubRepository.AddUserCoin(coins)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s *CoinmarketcapService) GetUserCoin(userId int) ([]model.UserCoinsResponse, error) {
-	var userCoinsResponse []model.UserCoinsResponse
-	userCoins, err := s.FinHubRepository.GetUserCoin(userId)
-
-	for _, coin := range userCoins {
-		coinInfo, err := s.FinHubRepository.GetCoin(coin.CoinId)
-
-		if err != nil {
-			return nil, err
-		}
-
-		var userCoinResponse model.UserCoinsResponse
-
-		userCoinResponse.UserId = coin.UserId
-		userCoinResponse.Name = coinInfo.Name
-		userCoinResponse.Symbol = coinInfo.Symbol
-		userCoinResponse.Slug = coinInfo.Slug
-		userCoinResponse.CoinMarketCapId = coinInfo.Id
-		userCoinResponse.CoinMarketCapRank = coinInfo.Rank
-		userCoinResponse.CoinMarketCapStatus = coinInfo.Status
-		userCoinResponse.Amount = coin.Amount
-		userCoinResponse.Price = coin.Price
-
-		userCoinsResponse = append(userCoinsResponse, userCoinResponse)
-	}
-
-	var userCoinsSlugs []string
-
-	for _, coin := range userCoinsResponse {
-		userCoinsSlugs = append(userCoinsSlugs, strconv.Itoa(coin.CoinMarketCapId))
-	}
-
-	coinCurrentData, err := s.GetCoinsData(userCoinsSlugs)
-
-	for i, coin := range userCoinsResponse {
-		userCoinsResponse[i].CurrentPrice = math.Round((coinCurrentData.Data[strconv.Itoa(coin.CoinMarketCapId)].Quote.USD.Price)*100) / 100
-		userCoinsResponse[i].CurrentProfit = math.Round((userCoinsResponse[i].Amount*coinCurrentData.Data[strconv.Itoa(coin.CoinMarketCapId)].Quote.USD.Price-coin.Price)*100) / 100
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	return userCoinsResponse, nil
 }
