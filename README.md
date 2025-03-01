@@ -1,0 +1,34 @@
+<h1 align="center">🚀 FinHub – Crypto Investment Tracker</h1>
+
+<p align="center">
+  <b>FinHub</b> is an advanced cryptocurrency investment tracker that helps you monitor, analyze, and optimize your portfolio in real time. With an intuitive interface and powerful analytics tools, you can easily manage your assets and improve your investment strategies.
+  To view the frontend, please visite: link.
+</p>
+
+---
+
+<h2>🔹 Features</h2>
+
+<ul>
+  <li>📊 <b>Real-time Dashboard</b> – Track your investments and view your total portfolio value.</li>
+</ul>
+
+---
+
+<h2>📌 Roadmap</h2>
+
+<p>Upcoming features:</p>
+<ul>
+  <li>📈 <b>Advanced Analytics</b> – Get insights into your trading history, asset allocation, and profit/loss reports.</li>
+  <li>🔔 <b>Custom Alerts</b> – Set price alerts and receive notifications when market conditions change.</li>
+  <li>🔐 <b>Secure & Private</b> – Your data stays private, with end-to-end encryption.</li>
+  <lil>... and many more!</lil>
+</ul>
+
+---
+
+<h2>‼️ Warning</h2>
+
+<p>Please note that this project is solely intended for learning purposes. It is not designed for real-world usage, financial transactions, or investment management. Use at your own risk.</p>
+
+<p>For support or inquiries, reach out via <a href="mailto:nazem.navid@gmail.com">email</a> or open an issue on GitHub.</p>
