@@ -5,6 +5,10 @@
   To view the frontend, please visite: <a target="_blank" rel="noopener noreferrer" href="https://github.com/NNazem/FinHub-Web">FinHub Web</a>
 </p>
 
+<img width="1510" alt="image" src="https://github.com/user-attachments/assets/a432e404-619d-452d-b762-70ca01adc777" />
+
+<img width="1502" alt="image" src="https://github.com/user-attachments/assets/1cd39a83-4637-4005-be5e-dc0bcce7ba94" />
+
 ---
 
 <h2>🔹 Features</h2>
