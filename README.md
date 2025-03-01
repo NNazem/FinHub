@@ -2,7 +2,7 @@
 
 <p align="center">
   <b>FinHub</b> is an advanced cryptocurrency investment tracker that helps you monitor, analyze, and optimize your portfolio in real time. With an intuitive interface and powerful analytics tools, you can easily manage your assets and improve your investment strategies.
-  To view the frontend, please visite: link.
+  To view the frontend, please visite: <a target="_blank" rel="noopener noreferrer" href="https://github.com/NNazem/FinHub-Web">FinHub Web</a>
 </p>
 
 ---
