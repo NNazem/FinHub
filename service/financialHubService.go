@@ -10,6 +10,7 @@ import (
 
 type FinancialHubService struct {
 	financialHubRepository *repository.FinancialHubRepository
+	CoinmarketcapService   *CoinmarketcapService
 }
 
 func NewFinancialHubService(financialHubRepository *repository.FinancialHubRepository) *FinancialHubService {
@@ -39,6 +40,29 @@ func (f *FinancialHubService) GetUserAmountPerTypologies(userId int) (*model.Use
 	userAmountPerCategories.AmountPerCategory = amountPerCategories
 
 	return &userAmountPerCategories, nil
+}
+
+func (f *FinancialHubService) GetUserAmountPerCryptos(userId int) (*model.UserAmountPerCrypto, error) {
+	amountPerCrypto, err := f.financialHubRepository.GetAmountPerCrypto(userId)
+
+	var cryptos []string
+
+	for _, crypto := range amountPerCrypto {
+		cryptos = append(cryptos, crypto.Name)
+	}
+
+	coinData, err := f.CoinmarketcapService.GetCoinsData(cryptos)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for i, crypto := range amountPerCrypto {
+		price := coinData.Data[crypto.Name].Quote.USD.Price
+		amountPerCrypto[i].CurrentValue = price
+	}
+
+	return &model.UserAmountPerCrypto{AmountPerCrypto: amountPerCrypto, UserId: userId}, nil
 }
 
 func (f *FinancialHubService) AddCoinToUser(userid string, coin model.AddCryptoRequest) error {

@@ -253,6 +253,38 @@ func (d *FinancialHubRepository) GetAmountPerTypology(userId int) ([]model.Amoun
 	return amountPerCategories, nil
 }
 
+func (d *FinancialHubRepository) GetAmountPerCrypto(userId int) ([]model.AmountPerCrypto, error) {
+	sqlStatement := `
+	SELECT sum(amount), c.id
+	FROM user_coins uc
+	JOIN coins c ON uc.coin_id = c.id
+	WHERE uc.user_id = $1
+	group by c.id
+	`
+
+	var amountPerCryptos []model.AmountPerCrypto
+
+	rows, err := d.Db.Query(sqlStatement, userId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var amountPerCrypto model.AmountPerCrypto
+
+		err := rows.Scan(&amountPerCrypto.Amount, &amountPerCrypto.Name)
+
+		if err != nil {
+			return nil, err
+		}
+
+		amountPerCryptos = append(amountPerCryptos, amountPerCrypto)
+	}
+
+	return amountPerCryptos, nil
+}
+
 func (d *FinancialHubRepository) AddCoinToUser(userid string, coin model.AddCryptoRequest) error {
 	sqlstatament :=
 		`INSERT INTO user_coins (user_id, coin_id, amount, price) VALUES ($1, $2, $3, $4)`

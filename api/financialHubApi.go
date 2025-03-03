@@ -40,6 +40,7 @@ func (f *FinancialHubApi) InitApi() {
 	f.Router.HandleFunc("/userCoinsGrouped/{userId}", f.GetUserCoinGrouped).Methods("GET")
 	f.Router.HandleFunc("/coins", f.GetCoins).Methods("GET")
 	f.Router.HandleFunc("/userAmountPerTypologies/{userId}", f.GetUserAmountPerTypologies).Methods("GET")
+	f.Router.HandleFunc("/userAmountPerCrypto/{userId}", f.GetUserAmountPerCrypto).Methods("GET")
 	f.Router.HandleFunc("/addCrypto/{userId}", f.AddCrypto).Methods("POST")
 
 	// Utils
@@ -177,6 +178,34 @@ func (f *FinancialHubApi) GetCoins(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(coins)
 
+	return
+}
+
+func (f *FinancialHubApi) GetUserAmountPerCrypto(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	userId := params["userId"]
+
+	userIdConverted, err := strconv.Atoi(userId)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	userAmountPerCrypto, err := f.FinancialHubService.GetUserAmountPerCryptos(userIdConverted)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(userAmountPerCrypto)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	return
 }
 

@@ -49,6 +49,17 @@ type UserAmountPerCategories struct {
 	AmountPerCategory []AmountPerCategory `json:"amount_per_category"`
 }
 
+type AmountPerCrypto struct {
+	Amount       float64 `json:"amount"`
+	CurrentValue float64 `json:"current_value"`
+	Name         string  `json:"name"`
+}
+
+type UserAmountPerCrypto struct {
+	UserId          int               `json:"user_id"`
+	AmountPerCrypto []AmountPerCrypto `json:"amount_per_crypto"`
+}
+
 type AddCryptoRequest struct {
 	Coin struct {
 		Id   int    `json:"id"`
