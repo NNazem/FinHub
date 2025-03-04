@@ -1,41 +1,38 @@
 package main
 
 import (
-	"FinHub/goCardlessApi"
-	"github.com/joho/godotenv"
+	"FinHub/api"
+	"FinHub/repository"
+	"FinHub/service"
+	"github.com/gorilla/mux"
 	"log"
+	"net/http"
+	"time"
 )
 
 func main() {
-	err := godotenv.Load()
+	db, _ := repository.InitDb()
 
-	cardlessClient, err := goCardlessApi.NewGoCardlessClient()
+	FinancialHubRepository := &repository.FinancialHubRepository{Db: db}
 
-	if err != nil {
-		log.Println(err.Error())
-		return
-	}
+	FinancialHubService := service.NewFinancialHubService(FinancialHubRepository)
 
-	//banks, err := fetchAllBanksByCountry(token, "IT")
+	CoinmarketcapService := service.NewCoinmarketcapService(FinancialHubRepository)
 
-	bank, err := goCardlessApi.FetchBankById(cardlessClient.Token, "INTESA_SANPAOLO_BCITITMMXXX")
+	go func() {
+		for {
+			log.Println("updating crypto data")
+			time.Sleep(10 * time.Hour)
+			err := CoinmarketcapService.GetCoinsHistoricalData()
+			if err != nil {
+				log.Println(err)
+			}
+			log.Println("crypto data updated")
+		}
+	}()
 
-	agreement, err := goCardlessApi.CreateUserAgreement(bank.Id, cardlessClient.Token)
-
-	link, err := goCardlessApi.CreateLink(bank.Id, agreement.Id, cardlessClient.Token)
-
-	accounts, err := goCardlessApi.FetchUserAccountsByBank(link.ID, cardlessClient.Token)
-
-	balance, err := goCardlessApi.FetchAccountBalance(agreement.Id, cardlessClient.Token)
-	log.Println(cardlessClient.Token.AccessToken)
-
-	log.Println(bank.Name)
-
-	log.Println(agreement.Id)
-
-	log.Println(link.Link)
-
-	log.Println(accounts.Accounts)
-
-	log.Println(balance.Balances[0].BalanceAmount.Amount)
+	r := mux.NewRouter()
+	api.NewFinancialHubApi(FinancialHubService, CoinmarketcapService, r).InitApi()
+	http.Handle("/", r)
+	log.Fatal(http.ListenAndServe(":8081", nil))
 }
