@@ -20,14 +20,8 @@ type FinancialHubRepository struct {
 }
 
 func InitDb() (*sql.DB, error) {
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-		"password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
-
-	db, err := sql.Open("postgres", psqlInfo)
-	if err != nil {
-		panic(err)
-	}
+	connStr := "user='koyeb-adm' password=npg_x5gdtpm3UzGA host=ep-lively-morning-a22j81i8.eu-central-1.pg.koyeb.app dbname='koyebdb'"
+	db, err := sql.Open("postgres", connStr)
 
 	err = db.Ping()
 	if err != nil {
