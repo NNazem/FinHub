@@ -3,7 +3,6 @@ name: Deploy Backend to VPS
 on:
   push:
     branches:
-      - master
       - svil
 
 jobs:
