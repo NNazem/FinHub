@@ -20,31 +20,11 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan 167.86.80.4 >> ~/.ssh/known_hosts
 
-      - name: Debug SSH Connection
-        run: |
-          echo "🔗 Test SSH Connection..."
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@167.86.80.4 "echo '✅ Connessione SSH riuscita!'"
-
       - name: Deploy Backend
         run: |
           ssh -i ~/.ssh/id_rsa root@167.86.80.4 << 'EOF'
-            set -x  # Debug mode: stampa ogni comando eseguito
-            
-            echo "📁 Navigo nella cartella del backend..."
-            cd /home/backend || exit 1
-
-            echo "🔄 Controllo lo stato di Git..."
-            git status
-            git checkout svil
-            git pull origin svil || exit 1
-
-            echo "🛑 Fermando il backend..."
+            cd /home/backend
+            git pull origin svil
             docker-compose down
-
-            echo "🔄 Ricostruendo ed eseguendo il backend..."
-            docker-compose up --build -d || exit 1
-
-            echo "🐳 Stato dei container dopo il deploy:"
-            docker ps
-            echo "🚀 Deploy completato!"
+            docker-compose up --build -d
           EOF
