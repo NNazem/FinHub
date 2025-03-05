@@ -23,6 +23,13 @@ jobs:
       - name: Deploy Backend
         run: |
           ssh -i ~/.ssh/id_rsa root@167.86.80.4 << 'EOF'
+
+            if [ ! -d "/home/backend/.git" ]; then
+              echo "Repository not found"
+              rm -rf /home/backend
+              git clone git@github.com:tuo-utente/tuo-repo.git /home/backend
+            fi
+            
             cd /home/backend || exit 1
             git status || exit 1
             git checkout svil || exit 1
