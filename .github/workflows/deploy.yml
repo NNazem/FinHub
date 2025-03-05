@@ -27,6 +27,7 @@ jobs:
             if [ ! -d "/home/backend/.git" ]; then
               echo "Repository not found."
               rm -rf /home/backend
+              mkdir /home/backend
               git clone git@github.com:tuo-utente/tuo-repo.git /home/backend
             fi
             
