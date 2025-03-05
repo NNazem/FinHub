@@ -28,7 +28,7 @@ jobs:
               echo "Repository not found."
               rm -rf /home/backend
               mkdir /home/backend
-              git clone git@github.com:NNazem/FinHub.git /home/backend
+              git clone https://github.com/NNazem/FinHub.git /home/backend
             fi
             
             cd /home/backend || exit 1
