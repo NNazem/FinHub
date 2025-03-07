@@ -34,5 +34,5 @@ func main() {
 	r := mux.NewRouter()
 	api.NewFinancialHubApi(FinancialHubService, CoinmarketcapService, r).InitApi()
 	http.Handle("/", r)
-	log.Fatal(http.ListenAndServe(":8081", nil))
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
