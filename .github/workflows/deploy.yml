@@ -42,11 +42,15 @@ jobs:
             git status || exit 1
             git checkout svil || exit 1
             git pull origin svil || exit 1
+          
+            cat > enviroments.env <<EOL
+            POSTGRE_USER=${{ secrets.POSTGRE_USER }}
+            POSTGRE_PASSWORD=${{ secrets.POSTGRE_PASSWORD }}
+            POSTGRE_HOST=${{ secrets.POSTGRE_HOST }}
+            POSTGRE_DB_NAME=${{ secrets.POSTGRE_DB_NAME }}
+            COINMARKETCAP_API_KEY=${{ secrets.COINMARKETCAP_API_KEY }}
+            EOL
+          
             docker-compose down
-            POSTGRE_USER=${{ secrets.POSTGRE_USER }} \
-            POSTGRE_PASSWORD=${{ secrets.POSTGRE_PASSWORD }} \
-            POSTGRE_HOST=${{ secrets.POSTGRE_HOST }} \
-            POSTGRE_DB_NAME=${{ secrets.POSTGRE_DB_NAME }} \
-            COINMARKETCAP_API_KEY=${{ secrets.COINMARKETCAP_API_KEY }} \
             docker-compose up --build -d || exit 1
           EOF

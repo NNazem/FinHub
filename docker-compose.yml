@@ -7,11 +7,7 @@ services:
     restart: always
     ports:
       - "8080:8080"
-    environment:
-      POSTGRE_USER: ${POSTGRE_USER}
-      POSTGRE_PASSWORD: ${POSTGRE_PASSWORD}
-      POSTGRE_HOST: ${POSTGRE_HOST}
-      POSTGRE_DB_NAME: ${POSTGRE_DB_NAME}
-      COINMARKETCAP_API_KEY: ${COINMARKETCAP_API_KEY}
+    env_file:
+      - enviroments.env
     volumes:
       - ./data:/app/data
