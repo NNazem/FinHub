@@ -53,6 +53,8 @@ func InitDb() (*sql.DB, error) {
 
 	fmt.Println("Successfully connected!")
 
+	log.Println(db.Stats())
+
 	return db, nil
 }
 
