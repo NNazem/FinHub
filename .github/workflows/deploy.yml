@@ -46,9 +46,6 @@ jobs:
             POSTGRE_HOST=${{ vars.POSTGRE_HOST }}
             POSTGRE_DB_NAME=${{ vars.POSTGRE_DB_NAME }}
             COINMARKETCAP_API_KEY=${{ secrets.COINMARKETCAP_API_KEY }}
-            EOF_ENV
-            
-            EOF
 
       - name: Deploy Backend
         run: |

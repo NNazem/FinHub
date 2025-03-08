@@ -36,6 +36,9 @@ func InitDb() (*sql.DB, error) {
 	log.Println("Host : " + host)
 
 	connStr := fmt.Sprintf("user='%s' password='%s' host='%s' dbname='%s'", user, pass, host, dbName)
+
+	log.Println(connStr)
+
 	db, err := sql.Open("postgres", connStr)
 
 	err = db.Ping()
