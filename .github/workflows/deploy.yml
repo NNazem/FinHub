@@ -39,13 +39,16 @@ jobs:
             fi
           
             cd /home/backend || exit 1
-            
-            cat > enviroments.env <<EOF_ENV
+          
+            cat > .env <<EOF_ENV
             POSTGRE_USER=${{ vars.POSTGRE_USER }}
             POSTGRE_PASSWORD=${{ vars.POSTGRE_PASSWORD }}
             POSTGRE_HOST=${{ vars.POSTGRE_HOST }}
             POSTGRE_DB_NAME=${{ vars.POSTGRE_DB_NAME }}
-            COINMARKETCAP_API_KEY=${{ vars.COINMARKETCAP_API_KEY }}
+            COINMARKETCAP_API_KEY=${{ secrets.COINMARKETCAP_API_KEY }}
+            EOF_ENV
+            
+            EOF
 
       - name: Deploy Backend
         run: |
