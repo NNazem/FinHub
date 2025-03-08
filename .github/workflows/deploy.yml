@@ -10,6 +10,7 @@ env:
   POSTGRE_PASSWORD: ${{vars.POSTGRE_PASSWORD}}
   POSTGRE_HOST: ${{vars.POSTGRE_HOST}}
   POSTGRE_DB_NAME: ${{vars.POSTGRE_DB_NAME}}
+  POSTGRE_PORT: ${{vars.POSTGRE_PORT}}
   COINMARKETCAP_API_KEY: ${{secrets.COINMARKETCAP_API_KEY}}
 
 jobs:
@@ -45,6 +46,7 @@ jobs:
             POSTGRE_PASSWORD=${{ vars.POSTGRE_PASSWORD }}
             POSTGRE_HOST=${{ vars.POSTGRE_HOST }}
             POSTGRE_DB_NAME=${{ vars.POSTGRE_DB_NAME }}
+            POSTGRE_PORT=${{ vars.POSTGRE_PORT }}
             COINMARKETCAP_API_KEY=${{ secrets.COINMARKETCAP_API_KEY }}
 
       - name: Deploy Backend

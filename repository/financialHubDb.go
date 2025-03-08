@@ -30,12 +30,17 @@ func InitDb() (*sql.DB, error) {
 
 	log.Println(host, err4)
 
+	port, err5 := os.LookupEnv("POSTGRE_PORT")
+
+	log.Println(port, err5)
+
 	log.Println("User : " + user)
 	log.Println("Pass : " + pass)
 	log.Println("DbName : " + dbName)
 	log.Println("Host : " + host)
 
-	connStr := fmt.Sprintf("user='%s' password='%s' host='%s' dbname='%s'", user, pass, host, dbName)
+	connStr := fmt.Sprintf("host=%s port=%s user=%s "+"password=%s dbname=%s sslmode=disable",
+		host, port, user, pass, dbName)
 
 	log.Println(connStr)
 
