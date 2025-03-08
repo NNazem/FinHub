@@ -31,6 +31,12 @@
 
 ---
 
+<h2>💻 Technologies</h2>
+
+The application consists of a React.js frontend and a Go backend, with PostgreSQL as the database. GitHub Actions automates the CI/CD pipeline, handling build and deployment processes. The system is deployed on a personal VPS.
+
+---
+
 <h2>‼️ Warning</h2>
 
 <p>Please note that this project is solely intended for learning purposes. It is not designed for real-world usage, financial transactions, or investment management. Use at your own risk.</p>
