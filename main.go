@@ -22,8 +22,8 @@ func main() {
 	go func() {
 		for {
 			log.Println("Updating crypto data")
-			time.Sleep(10 * time.Hour)
 			err := CoinmarketcapService.GetCoinsHistoricalData()
+			time.Sleep(10 * time.Hour)
 			if err != nil {
 				log.Println(err)
 			}
