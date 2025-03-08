@@ -39,8 +39,8 @@ jobs:
             fi
           
             cd /home/backend || exit 1
-          
-            cat > .env <<EOF_ENV
+                      
+            cat > enviroments.env <<EOF_ENV
             POSTGRE_USER=${{ vars.POSTGRE_USER }}
             POSTGRE_PASSWORD=${{ vars.POSTGRE_PASSWORD }}
             POSTGRE_HOST=${{ vars.POSTGRE_HOST }}
