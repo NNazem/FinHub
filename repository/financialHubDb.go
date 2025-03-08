@@ -44,7 +44,7 @@ func InitDb() (*sql.DB, error) {
 		panic(err)
 	}
 
-	fmt.Println("Successfully connected!")
+	fmt.Println("Successfully connected.")
 
 	return db, nil
 }
