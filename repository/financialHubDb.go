@@ -5,14 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/lib/pq"
-)
-
-const (
-	host     = "localhost"
-	port     = 8080
-	user     = "postgres"
-	password = "admin"
-	dbname   = "postgres"
+	"os"
 )
 
 type FinancialHubRepository struct {
@@ -20,7 +13,12 @@ type FinancialHubRepository struct {
 }
 
 func InitDb() (*sql.DB, error) {
-	connStr := "user='koyeb-adm' password=npg_x5gdtpm3UzGA host=ep-lively-morning-a22j81i8.eu-central-1.pg.koyeb.app dbname='koyebdb'"
+	user := os.Getenv("POSTGRE_USER")
+	pass := os.Getenv("POSTGRE_PASSWORD")
+	dbName := os.Getenv("POSTGRE_DB_NAME")
+	host := os.Getenv("POSTGRE_HOST")
+
+	connStr := fmt.Sprintf("user='%s' password='%s' host='%s' dbname='%s'", user, pass, host, dbName)
 	db, err := sql.Open("postgres", connStr)
 
 	err = db.Ping()
