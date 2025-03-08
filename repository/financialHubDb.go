@@ -19,10 +19,10 @@ func InitDb() (*sql.DB, error) {
 	dbName := os.Getenv("POSTGRE_DB_NAME")
 	host := os.Getenv("POSTGRE_HOST")
 
-	log.Println(user)
-	log.Println(pass)
-	log.Println(dbName)
-	log.Println(host)
+	log.Println("User : " + user)
+	log.Println("Pass : " + pass)
+	log.Println("DbName : " + dbName)
+	log.Println("Host : " + host)
 
 	connStr := fmt.Sprintf("user='%s' password='%s' host='%s' dbname='%s'", user, pass, host, dbName)
 	db, err := sql.Open("postgres", connStr)
@@ -32,7 +32,7 @@ func InitDb() (*sql.DB, error) {
 		panic(err)
 	}
 
-	fmt.Println("Successfully connected!")
+	fmt.Println("Successfully connected.")
 
 	return db, nil
 }
