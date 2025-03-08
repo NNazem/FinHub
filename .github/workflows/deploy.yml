@@ -6,10 +6,10 @@ on:
       - svil
 
 env:
-  POSTGRE_USER: ${{secrets.POSTGRE_USER}}
-  POSTGRE_PASSWORD: ${{secrets.POSTGRE_PASSWORD}}
-  POSTGRE_HOST: ${{secrets.POSTGRE_HOST}}
-  POSTGRE_DB_NAME: ${{secrets.POSTGRE_DB_NAME}}
+  POSTGRE_USER: ${{vars.POSTGRE_USER}}
+  POSTGRE_PASSWORD: ${{vars.POSTGRE_PASSWORD}}
+  POSTGRE_HOST: ${{vars.POSTGRE_HOST}}
+  POSTGRE_DB_NAME: ${{vars.POSTGRE_DB_NAME}}
   COINMARKETCAP_API_KEY: ${{secrets.COINMARKETCAP_API_KEY}}
 
 jobs:
@@ -27,6 +27,17 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan 167.86.80.4 >> ~/.ssh/known_hosts
 
+      - name: Create Enviroment
+        run: |
+          cd /home/backend || exit 1
+          
+          cat > enviroments.env <<EOF_ENV
+          POSTGRE_USER=${{ vars.POSTGRE_USER }}
+          POSTGRE_PASSWORD=${{ vars.POSTGRE_PASSWORD }}
+          POSTGRE_HOST=${{ vars.POSTGRE_HOST }}
+          POSTGRE_DB_NAME=${{ vars.POSTGRE_DB_NAME }}
+          COINMARKETCAP_API_KEY=${{ vars.COINMARKETCAP_API_KEY }}
+
       - name: Deploy Backend
         run: |
           ssh -i ~/.ssh/id_rsa root@167.86.80.4 << 'EOF'
@@ -42,14 +53,6 @@ jobs:
             git status || exit 1
             git checkout svil || exit 1
             git pull origin svil || exit 1
-          
-            cat > enviroments.env <<EOF_ENV
-            POSTGRE_USER=${{ vars.POSTGRE_USER }}
-            POSTGRE_PASSWORD=${{ vars.POSTGRE_PASSWORD }}
-            POSTGRE_HOST=${{ vars.POSTGRE_HOST }}
-            POSTGRE_DB_NAME=${{ vars.POSTGRE_DB_NAME }}
-            COINMARKETCAP_API_KEY=${{ vars.COINMARKETCAP_API_KEY }}
-            EOF_ENV
           
             docker-compose down
             docker-compose up --build -d || exit 1
