@@ -4,8 +4,6 @@ services:
   backend:
     build: .
     container_name: backend
-    env_file:
-      - .env
     restart: always
     ports:
       - "8080:8080"
