@@ -1,0 +1,13 @@
+version: '3.7'
+
+services:
+  backend:
+    build: .
+    container_name: backend
+    restart: always
+    ports:
+      - "8080:8080"
+    env_file:
+      - enviroments.env
+    volumes:
+      - ./data:/app/data

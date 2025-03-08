@@ -5,7 +5,7 @@
   To view the frontend, please visit: <a target="_blank" rel="noopener noreferrer" href="https://github.com/NNazem/FinHub-Web">FinHub Web</a>
 </p>
 
-<img width="1502" alt="image" src="https://github.com/user-attachments/assets/a432e404-619d-452d-b762-70ca01adc777" />
+<img width="1503" alt="image" src="https://github.com/user-attachments/assets/a432e404-619d-452d-b762-70ca01adc777" />
 
 <img width="1502" alt="image" src="https://github.com/user-attachments/assets/1cd39a83-4637-4005-be5e-dc0bcce7ba94" />
 
@@ -28,12 +28,6 @@
   <li>🔐 <b>Secure & Private</b> – Your data stays private, with end-to-end encryption.</li>
   <lil>... and many more!</lil>
 </ul>
-
----
-
-<h2>💻 Technologies</h2>
-
-The application consists of a React.js frontend and a Go backend, with PostgreSQL as the database. GitHub Actions automates the CI/CD pipeline, handling build and deployment processes. The system is deployed on a personal VPS.
 
 ---
 

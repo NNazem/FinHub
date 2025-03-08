@@ -5,6 +5,14 @@ on:
     branches:
       - svil
 
+env:
+  POSTGRE_USER: ${{vars.POSTGRE_USER}}
+  POSTGRE_PASSWORD: ${{vars.POSTGRE_PASSWORD}}
+  POSTGRE_HOST: ${{vars.POSTGRE_HOST}}
+  POSTGRE_DB_NAME: ${{vars.POSTGRE_DB_NAME}}
+  POSTGRE_PORT: ${{vars.POSTGRE_PORT}}
+  COINMARKETCAP_API_KEY: ${{secrets.COINMARKETCAP_API_KEY}}
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -20,11 +28,36 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan 167.86.80.4 >> ~/.ssh/known_hosts
 
+      - name: Create Enviroment
+        run: |
+          ssh -i ~/.ssh/id_rsa root@167.86.80.4 << 'EOF'
+          
+            if [ ! -d "/home/backend/.git" ]; then
+              echo "Repository not found."
+              rm -rf /home/backend
+              mkdir /home/backend
+              git clone https://github.com/NNazem/FinHub.git /home/backend
+            fi
+          
+            cd /home/backend || exit 1
+                      
+            cat > enviroments.env <<EOF_ENV
+            POSTGRE_USER=${{ vars.POSTGRE_USER }}
+            POSTGRE_PASSWORD=${{ vars.POSTGRE_PASSWORD }}
+            POSTGRE_HOST=${{ vars.POSTGRE_HOST }}
+            POSTGRE_DB_NAME=${{ vars.POSTGRE_DB_NAME }}
+            POSTGRE_PORT=${{ vars.POSTGRE_PORT }}
+            COINMARKETCAP_API_KEY=${{ secrets.COINMARKETCAP_API_KEY }}
+
       - name: Deploy Backend
         run: |
           ssh -i ~/.ssh/id_rsa root@167.86.80.4 << 'EOF'
-            cd /home/backend
-            git pull origin svil
+            
+            cd /home/backend || exit 1
+            git status || exit 1
+            git checkout svil || exit 1
+            git pull origin svil || exit 1
+          
             docker-compose down
-            docker-compose up --build -d
+            docker-compose up --build -d || exit 1
           EOF

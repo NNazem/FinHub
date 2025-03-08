@@ -5,14 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/lib/pq"
-)
-
-const (
-	host     = "localhost"
-	port     = 8080
-	user     = "postgres"
-	password = "admin"
-	dbname   = "postgres"
+	"log"
+	"os"
 )
 
 type FinancialHubRepository struct {
@@ -20,7 +14,29 @@ type FinancialHubRepository struct {
 }
 
 func InitDb() (*sql.DB, error) {
-	connStr := "user='koyeb-adm' password=npg_x5gdtpm3UzGA host=ep-lively-morning-a22j81i8.eu-central-1.pg.koyeb.app dbname='koyebdb'"
+	user, err1 := os.LookupEnv("POSTGRE_USER")
+
+	log.Println(user, err1)
+
+	pass, err2 := os.LookupEnv("POSTGRE_PASSWORD")
+
+	log.Println(pass, err2)
+
+	dbName, err3 := os.LookupEnv("POSTGRE_DB_NAME")
+
+	log.Println(dbName, err3)
+
+	host, err4 := os.LookupEnv("POSTGRE_HOST")
+
+	log.Println(host, err4)
+
+	port, err5 := os.LookupEnv("POSTGRE_PORT")
+
+	log.Println(port, err5)
+
+	connStr := fmt.Sprintf("host=%s port=%s user=%s "+"password=%s dbname=%s sslmode=disable",
+		host, port, user, pass, dbName)
+
 	db, err := sql.Open("postgres", connStr)
 
 	err = db.Ping()
@@ -28,7 +44,7 @@ func InitDb() (*sql.DB, error) {
 		panic(err)
 	}
 
-	fmt.Println("Successfully connected!")
+	fmt.Println("Successfully connected.")
 
 	return db, nil
 }

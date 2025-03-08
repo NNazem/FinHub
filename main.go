@@ -21,9 +21,9 @@ func main() {
 
 	go func() {
 		for {
-			log.Println("updating crypto data")
-			time.Sleep(10 * time.Hour)
+			log.Println("Updating crypto data")
 			err := CoinmarketcapService.GetCoinsHistoricalData()
+			time.Sleep(10 * time.Hour)
 			if err != nil {
 				log.Println(err)
 			}
@@ -34,5 +34,5 @@ func main() {
 	r := mux.NewRouter()
 	api.NewFinancialHubApi(FinancialHubService, CoinmarketcapService, r).InitApi()
 	http.Handle("/", r)
-	log.Fatal(http.ListenAndServe(":8081", nil))
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
