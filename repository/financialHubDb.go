@@ -14,10 +14,21 @@ type FinancialHubRepository struct {
 }
 
 func InitDb() (*sql.DB, error) {
-	user := os.Getenv("POSTGRE_USER")
-	pass := os.Getenv("POSTGRE_PASSWORD")
-	dbName := os.Getenv("POSTGRE_DB_NAME")
-	host := os.Getenv("POSTGRE_HOST")
+	user, err1 := os.LookupEnv("POSTGRE_USER")
+
+	log.Println(user, err1)
+
+	pass, err2 := os.LookupEnv("POSTGRE_PASSWORD")
+
+	log.Println(pass, err2)
+
+	dbName, err3 := os.LookupEnv("POSTGRE_DB_NAME")
+
+	log.Println(dbName, err3)
+
+	host, err4 := os.LookupEnv("POSTGRE_HOST")
+
+	log.Println(host, err4)
 
 	log.Println("User : " + user)
 	log.Println("Pass : " + pass)
