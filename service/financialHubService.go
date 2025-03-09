@@ -3,6 +3,7 @@ package service
 import (
 	"FinHub/model"
 	"FinHub/repository"
+	"math"
 	"sort"
 	"strconv"
 )
@@ -70,33 +71,33 @@ func (f *FinancialHubService) AddCoinToUser(userid string, coin model.AddCryptoR
 	return err
 }
 
-func (s *CoinmarketcapService) GetUserCoin(userId int) ([]model.UserCoinsResponse, error) {
+func (f *FinancialHubService) GetUserCoin(userId int) ([]model.UserCoinsResponse, error) {
 	var userCoinsResponse []model.UserCoinsResponse
-	userCoins, err := s.FinHubRepository.GetUserCoin(userId)
+	userCoins, err := f.financialHubRepository.GetUserCoin(userId)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return s.calculateProfit(userCoins, userCoinsResponse)
+	return f.calculateProfit(userCoins, userCoinsResponse)
 }
 
-func (s *CoinmarketcapService) GetUserCoinsGrouped(userId int) ([]model.UserCoinsResponse, error) {
+func (f *FinancialHubService) GetUserCoinsGrouped(userId int) ([]model.UserCoinsResponse, error) {
 	var userCoinsResponse []model.UserCoinsResponse
 
-	userCoins, err := s.FinHubRepository.GetUserCoinsGrouped(userId)
+	userCoins, err := f.financialHubRepository.GetUserCoinsGrouped(userId)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return s.calculateProfit(userCoins, userCoinsResponse)
+	return f.calculateProfit(userCoins, userCoinsResponse)
 
 }
 
-func (s *CoinmarketcapService) calculateProfit(userCoins []model.UserCoins, userCoinsResponse []model.UserCoinsResponse) ([]model.UserCoinsResponse, error) {
+func (f *FinancialHubService) calculateProfit(userCoins []model.UserCoins, userCoinsResponse []model.UserCoinsResponse) ([]model.UserCoinsResponse, error) {
 	for _, coin := range userCoins {
-		coinInfo, err := s.FinHubRepository.GetCoin(coin.CoinId)
+		coinInfo, err := f.financialHubRepository.GetCoin(coin.CoinId)
 
 		if err != nil {
 			return nil, err
@@ -123,7 +124,7 @@ func (s *CoinmarketcapService) calculateProfit(userCoins []model.UserCoins, user
 		userCoinsSlugs = append(userCoinsSlugs, strconv.Itoa(coin.CoinMarketCapId))
 	}
 
-	coinCurrentData, err := s.GetCoinsData(userCoinsSlugs)
+	coinCurrentData, err := f.CoinmarketcapService.GetCoinsData(userCoinsSlugs)
 
 	for i, coin := range userCoinsResponse {
 		totalCost := coin.Price * coin.Amount
@@ -132,9 +133,9 @@ func (s *CoinmarketcapService) calculateProfit(userCoins []model.UserCoins, user
 
 		currentProfit := currentValue - totalCost
 
-		userCoinsResponse[i].CurrentPrice = currentValue
+		userCoinsResponse[i].CurrentPrice = math.Round(currentValue*100) / 100
 
-		userCoinsResponse[i].CurrentProfit = currentProfit
+		userCoinsResponse[i].CurrentProfit = math.Round(currentProfit*100) / 100
 	}
 
 	if err != nil {
@@ -144,8 +145,8 @@ func (s *CoinmarketcapService) calculateProfit(userCoins []model.UserCoins, user
 	return userCoinsResponse, nil
 }
 
-func (s *CoinmarketcapService) GetCoins() ([]model.AllCoinsResponse, error) {
-	coins, err := s.FinHubRepository.GetCoins()
+func (f *FinancialHubService) GetCoins() ([]model.AllCoinsResponse, error) {
+	coins, err := f.financialHubRepository.GetCoins()
 
 	sort.Slice(coins, func(i, j int) bool {
 		return coins[i].Rank < coins[j].Rank
@@ -158,11 +159,61 @@ func (s *CoinmarketcapService) GetCoins() ([]model.AllCoinsResponse, error) {
 	return coins, nil
 }
 
-func (s *CoinmarketcapService) AddUserCoin(coins *model.UserCoins) error {
-	err := s.FinHubRepository.AddUserCoin(coins)
+func (f *FinancialHubService) AddUserCoin(coins *model.UserCoins) error {
+	err := f.financialHubRepository.AddUserCoin(coins)
 
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (f *FinancialHubService) GetUserList() ([]int, error) {
+	userlist, err := f.financialHubRepository.GetUserList()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return userlist, err
+}
+
+func (f *FinancialHubService) GetUserPortfolioHistoricalValue(userid int) ([]model.UserHistoricalPortfolioValue, error) {
+	userHistoricalValues, err := f.financialHubRepository.GetUserPortfolioHistoricalValue(userid)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return userHistoricalValues, nil
+}
+
+func (f *FinancialHubService) InsertUsersPortfolioTotalValue() error {
+	ids, err := f.GetUserList()
+
+	if err != nil {
+		return err
+	}
+
+	for _, id := range ids {
+		userCoinsGrouped, err := f.GetUserCoinsGrouped(id)
+
+		if err != nil {
+			return err
+		}
+
+		var profit float64
+
+		for _, coin := range userCoinsGrouped {
+			profit += coin.CurrentProfit
+		}
+
+		err = f.financialHubRepository.InsertUserPortfolioTotalValue(id, profit)
+
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

@@ -307,3 +307,70 @@ func (d *FinancialHubRepository) AddCoinToUser(userid string, coin model.AddCryp
 
 	return nil
 }
+
+func (d *FinancialHubRepository) GetUserList() ([]int, error) {
+	sqlStatament :=
+		`SELECT id
+		FROM users`
+
+	var ids []int
+
+	rows, err := d.Db.Query(sqlStatament)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var id int
+		err := rows.Scan(&id)
+
+		if err != nil {
+			return nil, err
+		}
+
+		ids = append(ids, id)
+	}
+
+	return ids, nil
+}
+
+func (d *FinancialHubRepository) InsertUserPortfolioTotalValue(userId int, value float64) error {
+	sqlStatament :=
+		`INSERT INTO user_historical_portfolio_value (user_id, portfolio_value) VALUES ($1, $2)`
+
+	_, err := d.Db.Exec(sqlStatament, userId, value)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d *FinancialHubRepository) GetUserPortfolioHistoricalValue(userid int) ([]model.UserHistoricalPortfolioValue, error) {
+	sqlStatament :=
+		`SELECT user_id, portfolio_value, date FROM user_historical_portfolio_value where user_id = $1`
+
+	Rows, err := d.Db.Query(sqlStatament, userid)
+
+	var userHistoricalValues []model.UserHistoricalPortfolioValue
+
+	if err != nil {
+		return nil, err
+	}
+
+	for Rows.Next() {
+		var userHistoricalValue model.UserHistoricalPortfolioValue
+
+		err = Rows.Scan(&userHistoricalValue.UserId, &userHistoricalValue.PortfolioValue, &userHistoricalValue.Date)
+
+		if err != nil {
+			return nil, err
+		}
+
+		userHistoricalValues = append(userHistoricalValues, userHistoricalValue)
+	}
+
+	return userHistoricalValues, nil
+}

@@ -41,6 +41,7 @@ func (f *FinancialHubApi) InitApi() {
 	f.Router.HandleFunc("/coins", f.GetCoins).Methods("GET")
 	f.Router.HandleFunc("/userAmountPerTypologies/{userId}", f.GetUserAmountPerTypologies).Methods("GET")
 	f.Router.HandleFunc("/userAmountPerCrypto/{userId}", f.GetUserAmountPerCrypto).Methods("GET")
+	f.Router.HandleFunc("/userPortfolioHistoricalValue/{userId}", f.GetUserPortfolioHistoricalValue).Methods("GET")
 	f.Router.HandleFunc("/addCrypto/{userId}", f.AddCrypto).Methods("POST")
 
 	// Utils
@@ -108,7 +109,7 @@ func (f *FinancialHubApi) AddUserCoins(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = f.CoinmarketcapService.AddUserCoin(coin)
+	err = f.FinancialHubService.AddUserCoin(coin)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -130,7 +131,7 @@ func (f *FinancialHubApi) GetUserCoin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	coins, err := f.CoinmarketcapService.GetUserCoin(atoi)
+	coins, err := f.FinancialHubService.GetUserCoin(atoi)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -154,7 +155,7 @@ func (f *FinancialHubApi) GetUserCoinGrouped(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	coins, err := f.CoinmarketcapService.GetUserCoinsGrouped(atoi)
+	coins, err := f.FinancialHubService.GetUserCoinsGrouped(atoi)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -168,7 +169,7 @@ func (f *FinancialHubApi) GetUserCoinGrouped(w http.ResponseWriter, r *http.Requ
 }
 
 func (f *FinancialHubApi) GetCoins(w http.ResponseWriter, r *http.Request) {
-	coins, err := f.CoinmarketcapService.GetCoins()
+	coins, err := f.FinancialHubService.GetCoins()
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -255,4 +256,35 @@ func (f *FinancialHubApi) AddCrypto(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(coin)
 	return
+}
+
+func (f *FinancialHubApi) GetUserPortfolioHistoricalValue(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	userId := vars["userId"]
+
+	userIdConverted, err := strconv.Atoi(userId)
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(err.Error())
+		return
+	}
+
+	historicalValues, err := f.FinancialHubService.GetUserPortfolioHistoricalValue(userIdConverted)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(err.Error())
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(historicalValues)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

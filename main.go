@@ -31,6 +31,18 @@ func main() {
 		}
 	}()
 
+	go func() {
+		for {
+			log.Println("Saving portfolio value")
+			err := FinancialHubService.InsertUsersPortfolioTotalValue()
+			if err != nil {
+				log.Println("Error saving portfolio value: " + err.Error())
+			}
+			log.Println("Portfolio values saved")
+			time.Sleep(5 * time.Minute)
+		}
+	}()
+
 	r := mux.NewRouter()
 	api.NewFinancialHubApi(FinancialHubService, CoinmarketcapService, r).InitApi()
 	http.Handle("/", r)

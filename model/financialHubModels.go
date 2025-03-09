@@ -70,3 +70,9 @@ type AddCryptoRequest struct {
 	PurchaseDate time.Time `json:"purchaseDate"`
 	Price        string    `json:"price"`
 }
+
+type UserHistoricalPortfolioValue struct {
+	UserId         int       `json:"user_id"`
+	PortfolioValue float64   `json:"portfolio_value"`
+	Date           time.Time `json:"date"`
+}
