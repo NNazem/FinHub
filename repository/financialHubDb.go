@@ -177,7 +177,7 @@ func (d *FinancialHubRepository) GetUserCoin(userId int) ([]model.UserCoins, err
 
 func (d *FinancialHubRepository) GetUserCoinsGrouped(userId int) ([]model.UserCoins, error) {
 	sqlStatament := `
-	SELECT user_id, coin_id, SUM(AMOUNT), SUM(PRICE)
+	SELECT user_id, coin_id, SUM(AMOUNT), AVG(PRICE)
 	FROM user_coins
 	WHERE user_id = $1
 	GROUP BY user_id, coin_id`

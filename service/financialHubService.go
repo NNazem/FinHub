@@ -3,7 +3,6 @@ package service
 import (
 	"FinHub/model"
 	"FinHub/repository"
-	"math"
 	"sort"
 	"strconv"
 )
@@ -75,6 +74,27 @@ func (s *CoinmarketcapService) GetUserCoin(userId int) ([]model.UserCoinsRespons
 	var userCoinsResponse []model.UserCoinsResponse
 	userCoins, err := s.FinHubRepository.GetUserCoin(userId)
 
+	if err != nil {
+		return nil, err
+	}
+
+	return s.calculateProfit(userCoins, userCoinsResponse)
+}
+
+func (s *CoinmarketcapService) GetUserCoinsGrouped(userId int) ([]model.UserCoinsResponse, error) {
+	var userCoinsResponse []model.UserCoinsResponse
+
+	userCoins, err := s.FinHubRepository.GetUserCoinsGrouped(userId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return s.calculateProfit(userCoins, userCoinsResponse)
+
+}
+
+func (s *CoinmarketcapService) calculateProfit(userCoins []model.UserCoins, userCoinsResponse []model.UserCoinsResponse) ([]model.UserCoinsResponse, error) {
 	for _, coin := range userCoins {
 		coinInfo, err := s.FinHubRepository.GetCoin(coin.CoinId)
 
@@ -106,8 +126,15 @@ func (s *CoinmarketcapService) GetUserCoin(userId int) ([]model.UserCoinsRespons
 	coinCurrentData, err := s.GetCoinsData(userCoinsSlugs)
 
 	for i, coin := range userCoinsResponse {
-		userCoinsResponse[i].CurrentPrice = math.Round((coinCurrentData.Data[strconv.Itoa(coin.CoinMarketCapId)].Quote.USD.Price)*100) / 100
-		userCoinsResponse[i].CurrentProfit = math.Round((userCoinsResponse[i].Amount*coinCurrentData.Data[strconv.Itoa(coin.CoinMarketCapId)].Quote.USD.Price-coin.Price)*100) / 100
+		totalCost := coin.Price * coin.Amount
+
+		currentValue := coinCurrentData.Data[strconv.Itoa(coin.CoinMarketCapId)].Quote.USD.Price * coin.Amount
+
+		currentProfit := currentValue - totalCost
+
+		userCoinsResponse[i].CurrentPrice = currentValue
+
+		userCoinsResponse[i].CurrentProfit = currentProfit
 	}
 
 	if err != nil {
@@ -115,67 +142,6 @@ func (s *CoinmarketcapService) GetUserCoin(userId int) ([]model.UserCoinsRespons
 	}
 
 	return userCoinsResponse, nil
-}
-
-func (s *CoinmarketcapService) GetUserCoinsGrouped(userId int) ([]model.UserCoinsResponse, error) {
-	var responseCoins []model.UserCoinsResponse
-
-	coins, err := s.FinHubRepository.GetUserCoinsGrouped(userId)
-
-	if err != nil {
-		return nil, err
-	}
-
-	for _, coin := range coins {
-		coinInfo, err := s.FinHubRepository.GetCoin(coin.CoinId)
-
-		if err != nil {
-			return nil, err
-		}
-
-		var responseCoin model.UserCoinsResponse
-
-		responseCoin.UserId = coin.UserId
-		responseCoin.Name = coinInfo.Name
-		responseCoin.Symbol = coinInfo.Symbol
-		responseCoin.Slug = coinInfo.Slug
-		responseCoin.CoinMarketCapId = coinInfo.Id
-		responseCoin.CoinMarketCapRank = coinInfo.Rank
-		responseCoin.CoinMarketCapStatus = coinInfo.Status
-		responseCoin.Amount = coin.Amount
-
-		weightedAveragePrice := coin.Price / coin.Amount
-
-		responseCoin.Price = weightedAveragePrice
-
-		responseCoins = append(responseCoins, responseCoin)
-	}
-
-	var userCoinSlug []string
-
-	for _, coin := range responseCoins {
-		userCoinSlug = append(userCoinSlug, strconv.Itoa(coin.CoinMarketCapId))
-	}
-
-	coinCurrentData, err := s.GetCoinsData(userCoinSlug)
-
-	if err != nil {
-		return nil, err
-	}
-
-	for i, coin := range responseCoins {
-		responseCoins[i].CurrentPrice = math.Round((coinCurrentData.Data[strconv.Itoa(coin.CoinMarketCapId)].Quote.USD.Price)*100) / 100
-
-		responseCoins[i].CurrentProfit = math.Round(coinCurrentData.Data[strconv.Itoa(coin.CoinMarketCapId)].Quote.USD.Price-coin.Price) * coin.Amount
-
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	return responseCoins, nil
-
 }
 
 func (s *CoinmarketcapService) GetCoins() ([]model.AllCoinsResponse, error) {
