@@ -12,12 +12,13 @@ import (
 
 type FinancialHubApi struct {
 	FinancialHubService  *service.FinancialHubService
-	CoinmarketcapService *service.CoinmarketcapService
+	CoinmarketcapService *service.CoinMarketCapService
+	UserService          *service.UserService
 	Router               *mux.Router
 }
 
-func NewFinancialHubApi(financialHubService *service.FinancialHubService, coinMarketcapApiService *service.CoinmarketcapService, router *mux.Router) *FinancialHubApi {
-	return &FinancialHubApi{FinancialHubService: financialHubService, CoinmarketcapService: coinMarketcapApiService, Router: router}
+func NewFinancialHubApi(financialHubService *service.FinancialHubService, coinMarketcapApiService *service.CoinMarketCapService, userService *service.UserService, router *mux.Router) *FinancialHubApi {
+	return &FinancialHubApi{FinancialHubService: financialHubService, CoinmarketcapService: coinMarketcapApiService, UserService: userService, Router: router}
 }
 
 func (f *FinancialHubApi) InitApi() {
@@ -109,7 +110,7 @@ func (f *FinancialHubApi) AddUserCoins(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = f.FinancialHubService.AddUserCoin(coin)
+	err = f.UserService.AddUserCoin(coin)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -155,7 +156,7 @@ func (f *FinancialHubApi) GetUserCoinGrouped(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	coins, err := f.FinancialHubService.GetUserCoinsGrouped(atoi)
+	coins, err := f.UserService.GetUserCoinsGrouped(atoi)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -246,7 +247,7 @@ func (f *FinancialHubApi) AddCrypto(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = f.FinancialHubService.AddCoinToUser(userId, coin)
+	err = f.UserService.AddCoinToUser(userId, coin)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

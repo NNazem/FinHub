@@ -12,17 +12,18 @@ import (
 
 func main() {
 	db, _ := repository.InitDb()
+	repo := &repository.FinancialHubRepository{Db: db}
 
-	FinancialHubRepository := &repository.FinancialHubRepository{Db: db}
+	coinService := service.NewCoinMarketCapService(repo)
+	finHubService := service.NewFinancialHubService(repo)
+	userService := service.NewUserService(repo, coinService, finHubService)
 
-	FinancialHubService := service.NewFinancialHubService(FinancialHubRepository)
-
-	CoinmarketcapService := service.NewCoinmarketcapService(FinancialHubRepository)
+	finHubService.UserService = userService
 
 	go func() {
 		for {
 			log.Println("Updating crypto data")
-			err := CoinmarketcapService.GetCoinsHistoricalData()
+			err := coinService.GetCoinsHistoricalData()
 			time.Sleep(10 * time.Hour)
 			if err != nil {
 				log.Println(err)
@@ -34,7 +35,7 @@ func main() {
 	go func() {
 		for {
 			log.Println("Saving portfolio value")
-			err := FinancialHubService.InsertUsersPortfolioTotalValue()
+			err := finHubService.InsertUsersPortfolioTotalValue()
 			if err != nil {
 				log.Println("Error saving portfolio value: " + err.Error())
 			}
@@ -44,7 +45,7 @@ func main() {
 	}()
 
 	r := mux.NewRouter()
-	api.NewFinancialHubApi(FinancialHubService, CoinmarketcapService, r).InitApi()
+	api.NewFinancialHubApi(finHubService, coinService, userService, r).InitApi()
 	http.Handle("/", r)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

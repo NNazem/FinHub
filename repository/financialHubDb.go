@@ -134,21 +134,6 @@ func (d *FinancialHubRepository) IsCoinPresent(id int) bool {
 	return count > 0
 }
 
-func (d *FinancialHubRepository) AddUserCoin(coin *model.UserCoins) error {
-	sqlStatement := `
-	INSERT INTO user_coins (user_id, coin_id, amount, price)
-	VALUES ($1, $2, $3, $4)
-	`
-
-	_, err := d.Db.Exec(sqlStatement, coin.UserId, coin.CoinId, coin.Amount, coin.Price)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (d *FinancialHubRepository) GetUserCoin(userId int) ([]model.UserCoins, error) {
 	sqlStatement := `
 	SELECT user_id, coin_id, amount, price
@@ -347,7 +332,20 @@ func (d *FinancialHubRepository) InsertUserPortfolioTotalValue(userId int, value
 
 	return nil
 }
+func (d *FinancialHubRepository) AddUserCoin(coin *model.UserCoins) error {
+	sqlStatement := `
+	INSERT INTO user_coins (user_id, coin_id, amount, price)
+	VALUES ($1, $2, $3, $4)
+	`
 
+	_, err := d.Db.Exec(sqlStatement, coin.UserId, coin.CoinId, coin.Amount, coin.Price)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 func (d *FinancialHubRepository) GetUserPortfolioHistoricalValue(userid int) ([]model.UserHistoricalPortfolioValue, error) {
 	sqlStatament :=
 		`SELECT user_id, portfolio_value, date FROM user_historical_portfolio_value where user_id = $1`
