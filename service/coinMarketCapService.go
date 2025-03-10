@@ -10,17 +10,17 @@ import (
 	"os"
 )
 
-type CoinmarketcapService struct {
+type CoinMarketCapService struct {
 	FinHubRepository *repository.FinancialHubRepository
 }
 
-func NewCoinmarketcapService(repo *repository.FinancialHubRepository) *CoinmarketcapService {
-	return &CoinmarketcapService{
+func NewCoinMarketCapService(repo *repository.FinancialHubRepository) *CoinMarketCapService {
+	return &CoinMarketCapService{
 		FinHubRepository: repo,
 	}
 }
 
-func (s *CoinmarketcapService) GetCoinInfo(coin string) (*model.CoinInfoResponse, error) {
+func (s *CoinMarketCapService) GetCoinInfo(coin string) (*model.CoinInfoResponse, error) {
 	url := "https://pro-api.coinmarketcap.com/v1/cryptocurrency/info?symbol=" + coin
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -42,7 +42,12 @@ func (s *CoinmarketcapService) GetCoinInfo(coin string) (*model.CoinInfoResponse
 		return nil, err
 	}
 
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+
+		}
+	}(res.Body)
 
 	coinInfoResponse := &model.CoinInfoResponse{}
 
@@ -55,7 +60,7 @@ func (s *CoinmarketcapService) GetCoinInfo(coin string) (*model.CoinInfoResponse
 	return coinInfoResponse, nil
 }
 
-func (s *CoinmarketcapService) GetCoinsData(coins []string) (*model.CoinResponse, error) {
+func (s *CoinMarketCapService) GetCoinsData(coins []string) (*model.CoinResponse, error) {
 	baseUrl := "https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest?id="
 
 	for i, coin := range coins {
@@ -91,7 +96,7 @@ func (s *CoinmarketcapService) GetCoinsData(coins []string) (*model.CoinResponse
 	return &coinInfoResponse, nil
 }
 
-func (s *CoinmarketcapService) GetCoinsHistoricalData() error {
+func (s *CoinMarketCapService) GetCoinsHistoricalData() error {
 	url := "https://pro-api.coinmarketcap.com/v1/cryptocurrency/map"
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -114,7 +119,12 @@ func (s *CoinmarketcapService) GetCoinsHistoricalData() error {
 		return err
 	}
 
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+
+		}
+	}(res.Body)
 
 	coinHistoricalData := &model.CoinHistoricalResponse{}
 
