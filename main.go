@@ -40,7 +40,7 @@ func main() {
 				log.Println("Error saving portfolio value: " + err.Error())
 			}
 			log.Println("Portfolio values saved")
-			time.Sleep(5 * time.Minute)
+			time.Sleep(1 * time.Hour)
 		}
 	}()
 
